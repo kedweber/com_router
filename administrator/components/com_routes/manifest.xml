@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="component" version="2.5" method="upgrade">
+	<name>Routes</name>
+    <author>Dave Li</author>
+    <authorEmail>info@kubica.nl</authorEmail>
+    <creationDate>July 2013</creationDate>
+    <copyright>(C) 2013 Dave Li. All rights reserved.</copyright>
+    <license>GNU General Public License version 3 or later.</license>
+    <version>1.0</version>
+    <description>Routes</description>
+
+    <install>
+        <sql>
+            <file driver="mysql" charset="utf8">install/install.sql</file>
+        </sql>
+    </install>
+    <uninstall>
+        <sql>
+            <file driver="mysql" charset="utf8">install/uninstall.sql</file>
+        </sql>
+    </uninstall>
+
+    <media folder="media">
+        <folder>com_routes</folder>
+    </media>
+
+    <administration>
+        <menu>Routes</menu>
+        <submenu>
+            <menu view="routes" link="option=com_routes&amp;view=routes" img="class:article">Routes</menu>
+            <menu view="patterns" link="option=com_routes&amp;view=patterns" img="class:article">Patterns</menu>
+        </submenu>
+
+        <files folder="admin">
+			<filename>dispatcher.php</filename>
+			<filename>routes.php</filename>
+			<filename>routes.xml</filename>
+			<folder>databases</folder>
+			<folder>views</folder>
+		</files>
+	</administration>
+</extension>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade" version="2.5">
+    <name>Router</name>
+    <author>Dave Li</author>
+    <authorEmail>info@kubica.nl</authorEmail>
+    <creationDate>July 2013</creationDate>
+    <copyright>(C) 2013 Dave Li. All rights reserved.</copyright>
+    <license>GNU General Public License version 3 or later.</license>
+    <version>1.0</version>
+    <description>Router</description>
+
+    <files>
+        <filename plugin="router">router.php</filename>
+    </files>
+
+    <languages folder="language">
+        <language tag="en-GB">en-GB/en-GB.plg_system_router.ini</language>
+        <language tag="en-GB">en-GB/en-GB.plg_system_router.sys.ini</language>
+    </languages>
+
+    <config>
+        <fields name="params">
+            <fieldset
+                name="cache"
+                label="ROUTER_PLG_FIELDSET_CACHE_LABEL">
+                <field
+                    name="cache"
+                    type="radio"
+                    label="ROUTER_PLG_FIELD_CACHE_LABEL"
+                    description="ROUTER_PLG_FIELD_CACHE_DESCRIPTION"
+                    default="0">
+                    <option value="0">NO</option>
+                    <option value="1">YES</option>
+                </field>
+            </fieldset>
+        </fields>
+    </config>
+</extension>
