@@ -1,21 +1,24 @@
 <?php
 /**
- * ComRouter
+ * ComRoutes
  *
  * @author      Dave Li <dave@moyoweb.nl>
  * @category    Nooku
  * @package     Moyo Components
- * @subpackage  Router
+ * @subpackage  Routes
  */
  
 defined('KOOWA') or die('Protected resource');
 
-class ComRouterDatabaseTableMenu_items extends KDatabaseTableDefault
+class ComRoutesDatabaseTableRoutes extends KDatabaseTableDefault
 {
     protected function _initialize(KConfig $config)
     {
         $config->append(array(
-            'name' => 'menu'
+            'name' => 'routes',
+//             'behaviors' => array(
+//                'com://admin/translations.database.behavior.translatable',
+//            )
         ));
 
         parent::_initialize($config);

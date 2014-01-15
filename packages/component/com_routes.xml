@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="component" version="3.0.0" method="upgrade" overwrite="true">
+	<name>Routes</name>
+    <identifier>com:routes</identifier>
+    <author>Dave Li</author>
+    <creationDate>July 2013</creationDate>
+    <copyright>(C) 2013 Dave Li. All rights reserved.</copyright>
+    <license>GNU General Public License version 3 or later.</license>
+    <authorEmail>info@kubica.nl</authorEmail>
+    <authorUrl>www.kubica.nl</authorUrl>
+    <version>1.0.0</version>
+    <description>Routes</description>
+
+    <install>
+        <sql>
+            <file driver="mysql" charset="utf8">install/install.sql</file>
+        </sql>
+    </install>
+    <uninstall>
+        <sql>
+            <file driver="mysql" charset="utf8">install/uninstall.sql</file>
+        </sql>
+    </uninstall>
+
+    <administration>
+        <files folder="administrator/components/com_routes">
+            <file>dispatcher.php</file>
+            <file>routes.php</file>
+
+            <folder>controllers</folder>
+            <folder>databases</folder>
+            <folder>install</folder>
+            <folder>language</folder>
+            <folder>models</folder>
+            <folder>templates</folder>
+            <folder>views</folder>
+        </files>
+
+        <languages folder="administrator/components/com_routes">
+            <language tag="en-GB">language/en-GB/en-GB.com_routes.ini</language>
+            <language tag="en-GB">language/en-GB/en-GB.com_routes.sys.ini</language>
+            <language tag="fr-FR">language/fr-FR/fr-FR.com_routes.ini</language>
+            <language tag="fr-FR">language/fr-FR/fr-FR.com_routes.sys.ini</language>
+        </languages>
+
+        <menu>COM_ROUTES</menu>
+        <submenu>
+            <menu view="routes" link="option=com_routes&amp;view=routes" img="class:article">ROUTES</menu>
+            <menu view="patterns" link="option=com_routes&amp;view=patterns" img="class:article">PATTERNS</menu>
+            <menu view="rebuild" link="option=com_routes&amp;view=rebuild" img="class:article">REBUILD</menu>
+        </submenu>
+	</administration>
+</extension>

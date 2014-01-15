@@ -108,9 +108,10 @@ class Router
 
         //TODO: Check if in menu.
 
-        if (empty($matchingRoute)) {
-            $matchingRoute = $this->getMatchingPatternFromQuery($query);
-        }
+//        TODO: Fix!
+//        if (empty($matchingRoute)) {
+//            $matchingRoute = $this->getMatchingPatternFromQuery($query);
+//        }
 
         if (empty($matchingRoute)) {
             return $uri;
@@ -441,51 +442,53 @@ class Router
             }
         }
 
-        $patterns = KService::get('com://admin/routes.model.patterns')->getList();
+        return null;
 
-        foreach($patterns as $pattern) {
-            $parts = explode('/', $pattern->pattern);
-
-            $mofo = explode('/', $path);
-
-            $result = array_intersect($mofo, $parts);
-
-            if(!empty($result)) {
-                $blaat = $pattern;
-            }
-        }
-
-        include_once(JPATH_ROOT . DS . 'components' . DS . $blaat->component . DS . 'router.php');
-
-        $segments = array_filter(explode('/', str_replace($blaat->pattern, '', $path)));
-
-        $prefix = str_replace('com_', '', $blaat->component);
-
-        $function = $prefix . 'ParseRoute';
-
-        $segments = array($blaat->view) + $segments;
-
-        if(function_exists($function)) {
-            $omfg = $function($segments);
-        }
-
-        $matchingRoute = array();
-        $matchingRoute['route'] = (object) array(
-            'path'  => $path,
-            'query' => 'option='.$blaat->component.'&'.http_build_query($omfg)
-        );
-        $matchingRoute['parameters'] = $path;
+//        $patterns = KService::get('com://admin/routes.model.patterns')->getList();
+//
+//        foreach($patterns as $pattern) {
+//            $parts = explode('/', $pattern->pattern);
+//
+//            $mofo = explode('/', $path);
+//
+//            $result = array_intersect($mofo, $parts);
+//
+//            if(!empty($result)) {
+//                $blaat = $pattern;
+//            }
+//        }
+//
+//        include_once(JPATH_ROOT . DS . 'components' . DS . $blaat->component . DS . 'router.php');
+//
+//        $segments = array_filter(explode('/', str_replace($blaat->pattern, '', $path)));
+//
+//        $prefix = str_replace('com_', '', $blaat->component);
+//
+//        $function = $prefix . 'ParseRoute';
+//
+//        $segments = array($blaat->view) + $segments;
+//
+//        if(function_exists($function)) {
+//            $omfg = $function($segments);
+//        }
+//
+//        $matchingRoute = array();
+//        $matchingRoute['route'] = (object) array(
+//            'path'  => $path,
+//            'query' => 'option='.$blaat->component.'&'.http_build_query($omfg)
+//        );
+//        $matchingRoute['parameters'] = $path;
 
 //        echo "<pre>";
 //        print_r($matchingRoute);
 //        echo "</pre>";
 //        exit;
 
-        if($matchingRoute) {
-            return $matchingRoute;
-        }
+//        if($matchingRoute) {
+//            return $matchingRoute;
+//        }
 
-        return null;
+//        return null;
     }
 
     /**
@@ -521,14 +524,16 @@ class Router
         $db = JFactory::getDbo();
         $query = $db->getQuery(true);
 
+        $iso_code = substr(JFactory::getLanguage()->getTag(), 0, 2);
+
         $query->select('*');
-        if($this->_lang != 'en' && $this->_lang) {
-            $query->from('#__'.$this->_lang.'_routes');
-        } else {
+//        if($this->_lang != 'en' && $this->_lang) {
+//            $query->from('#__'.$this->_lang.'_routes');
+//        } else {
             $query->from('#__routes');
-        }
+//        }
         $query->where('enabled = 1');
-        //$query->where('lang = '. ($this->_lang ? $db->quote($this->_lang) :  $db->quote('en')));
+        $query->where('lang = '. $db->quote($this->_lang ? $this->_lang : $iso_code));
         $db->setQuery($query);
 
         try {
@@ -538,7 +543,7 @@ class Router
         }
 
         //Fallback to default table.
-        if(count($result) < 1) {
+        if(count($result) == 0) {
             try {
                 $db = JFactory::getDbo();
                 $query = $db->getQuery(true);
@@ -554,7 +559,7 @@ class Router
                 return null;
             }
         }
-        
+
         return $result;
     }
 }
