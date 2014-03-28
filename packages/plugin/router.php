@@ -27,7 +27,7 @@ class plgSystemRouter extends JPlugin
     {
         parent::__construct($subject, $config);
 
-        $this->cache = $this->params->get('cache');
+        $this->_cache = $this->params->get('cache');
     }
 
     /**
@@ -79,7 +79,7 @@ class Router
      */
     public function Router($cache = false)
     {
-        $this->cache = $cache;
+        $this->_cache = $cache;
     }
 
     /**
@@ -90,8 +90,8 @@ class Router
     public function build(&$siteRouter, &$uri)
     {
         $cacheId = $uri->getQuery(false);
-        if (!empty($this->cache)) {
-            $cachedPathAndQuery = $this->cache->get('build: '.$cacheId);
+        if (!empty($this->_cache)) {
+            $cachedPathAndQuery = $this->_cache->get('build: '.$cacheId);
 
             if (!empty($cachedPathAndQuery)) {
                 $uri->setPath($cachedPathAndQuery[0]);
@@ -113,22 +113,20 @@ class Router
 //            $matchingRoute = $this->getMatchingPatternFromQuery($query);
 //        }
 
-        if (empty($matchingRoute)) {
-            return $uri;
-        }
+        if (!empty($matchingRoute)) {
+			$path = $this->getParametrizedPathForMatchingRoute($matchingRoute);
+			foreach (array_keys($matchingRoute['route']->query) as $key) {
+				unset($query[$key]);
+			}
 
-        $path = $this->getParametrizedPathForMatchingRoute($matchingRoute);
-        foreach (array_keys($matchingRoute['route']->query) as $key) {
-            unset($query[$key]);
-        }
+			unset($query['Itemid']);
 
-        unset($query['Itemid']);
+			$uri->setPath($uri->getPath().$path);
+			$uri->setQuery($query);
+		}
 
-        $uri->setPath($uri->getPath().$path);
-        $uri->setQuery($query);
-
-        if (!empty($this->cache)) {
-            $this->cache->store(array($uri->getPath(), $uri->getQuery(false)), 'build: '.$cacheId);
+        if (!empty($this->_cache)) {
+            $this->_cache->store(array($uri->getPath(), $uri->getQuery(false)), 'build: '.$cacheId);
         }
 
         return $uri;
@@ -144,8 +142,8 @@ class Router
         $vars = array();
 
         $cacheId = $uri->getPath();
-        if (!empty($this->cache)) {
-            $cachedQueryAndItemId = $this->cache->get('parse: '.$cacheId);
+        if (!empty($this->_cache)) {
+            $cachedQueryAndItemId = $this->_cache->get('parse: '.$cacheId);
 
             if (!empty($cachedQueryAndItemId)) {
                 $uri->setPath('');
@@ -164,30 +162,28 @@ class Router
         $path = str_replace(JURI::base() . '/', '', $path);
         $path = rtrim($path, '/');
         $matchingRoute = $this->getMatchingRouteFromPath($path);
-        if (empty($matchingRoute)) {
-            return $vars;
-        }
+        if (!empty($matchingRoute)) {
+			$newQuery = $this->getParametrizedQueryForMatchingRoute($matchingRoute);
+			$oldQuery = $uri->getQuery(false);
+			if (!empty($oldQuery)) {
+				$newQuery = $newQuery.'&'.$oldQuery;
+			}
 
-        $newQuery = $this->getParametrizedQueryForMatchingRoute($matchingRoute);
-        $oldQuery = $uri->getQuery(false);
-        if (!empty($oldQuery)) {
-            $newQuery = $newQuery.'&'.$oldQuery;
-        }
+			$newQuery = preg_replace('#Itemid=[^&]*&#', '', $newQuery);
+			$newQuery = preg_replace('#&?Itemid=.*#', '', $newQuery);
 
-        $newQuery = preg_replace('#Itemid=[^&]*&#', '', $newQuery);
-        $newQuery = preg_replace('#&?Itemid=.*#', '', $newQuery);
+			$uri->setPath('');
+			$uri->setQuery($newQuery);
+			if ($matchingRoute['route']->itemId) {
+				JRequest::setVar('Itemid', $matchingRoute['route']->itemId);
+			} else {
+				JRequest::setVar('Itemid', null);
+			}
 
-        $uri->setPath('');
-        $uri->setQuery($newQuery);
-        if ($matchingRoute['route']->itemId) {
-            JRequest::setVar('Itemid', $matchingRoute['route']->itemId);
-        } else {
-            JRequest::setVar('Itemid', null);
-        }
-
-        if (!empty($this->cache)) {
-            $this->cache->store(array($uri->getQuery(false), $matchingRoute['route']->itemId), 'parse: '.$cacheId);
-        }
+			if (!empty($this->_cache)) {
+				$this->_cache->store(array($uri->getQuery(false), $matchingRoute['route']->itemId), 'parse: '.$cacheId);
+			}
+		}
 
         return $vars;
     }

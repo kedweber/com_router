@@ -13,6 +13,11 @@
         <filename plugin="router">router.php</filename>
     </files>
 
+    <languages folder="language">
+        <language tag="en-GB">en-GB/en-GB.plg_system_router.ini</language>
+        <language tag="en-GB">en-GB/en-GB.plg_system_router.sys.ini</language>
+    </languages>
+
     <config>
         <fields name="params">
             <fieldset
