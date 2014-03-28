@@ -155,6 +155,8 @@ class ComRoutesDatabaseBehaviorRoutable extends KDatabaseBehaviorAbstract
         }
 
         $sections = array_map('strtolower', $sections);
+		$sections = array_map(array($this , 'sanitize'), $sections);
+
         $path   = implode('/', $sections);
         $query  = 'option='.$package.'&view='.KInflector::singularize($view).'&id='.$context->data->id;
 
@@ -211,4 +213,11 @@ class ComRoutesDatabaseBehaviorRoutable extends KDatabaseBehaviorAbstract
     {
         return $this->_filters;
     }
+
+	public function sanitize($string)
+	{
+		$filter = $this->getService('koowa:filter.slug');
+
+		return $filter->sanitize($string);
+	}
 }

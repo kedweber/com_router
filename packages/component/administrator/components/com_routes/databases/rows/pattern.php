@@ -55,5 +55,7 @@ class ComRoutesDatabaseRowPattern extends KDatabaseRowDefault
 
             return false;
         }
+
+		parent::save();
     }
 }
