@@ -78,13 +78,12 @@ class ComRoutesDatabaseRowRoute extends KDatabaseRowDefault
                         $params[$param] = $config->row->{$param};
                     }
 
-                    $url = 'index.php?option='.$config->component.'&view='.KInflector::pluralize($config->view);
+                    $url = 'index.php?option=com_'.$config->component.'&view='.KInflector::singularize($config->view).'&id='.$config->row->id;
                     if($params) {
                         $url.= '&'.http_build_query($params);
                     }
 
-                    $item = $this->_getMenuItem($url);
-
+					$item = $this->_getMenuItem($url);
 
                     if($item->id) {
                         $this->itemId = $item->id;
@@ -167,6 +166,8 @@ class ComRoutesDatabaseRowRoute extends KDatabaseRowDefault
 
     protected function _getMenuItem($url)
     {
+		error_log($url);
+
         return JApplication::getInstance('site')->getMenu()->getItems('link', $url, true);
     }
 }

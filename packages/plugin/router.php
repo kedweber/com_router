@@ -89,7 +89,10 @@ class Router
      */
     public function build(&$siteRouter, &$uri)
     {
-        $cacheId = $uri->getQuery(false);
+		$this->_lang = str_replace('/', '', str_replace('index.php', '', $uri->getPath()));
+
+        $cacheId = 'lang='.$this->_lang.'&'.$uri->getQuery(false);
+
         if (!empty($this->_cache)) {
             $cachedPathAndQuery = $this->_cache->get('build: '.$cacheId);
 
@@ -100,29 +103,38 @@ class Router
             }
         }
 
-        $this->_lang = str_replace('/', '', str_replace('index.php', '', $uri->getPath()));
-
         $query = $uri->getQuery(true);
-
-        $matchingRoute = $this->getMatchingRouteFromQuery($query);
-
-        //TODO: Check if in menu.
 
 //        TODO: Fix!
 //        if (empty($matchingRoute)) {
 //            $matchingRoute = $this->getMatchingPatternFromQuery($query);
 //        }
 
+		$matchingRoute = $this->getMatchingRouteFromQuery($query);
+
         if (!empty($matchingRoute)) {
-			$path = $this->getParametrizedPathForMatchingRoute($matchingRoute);
-			foreach (array_keys($matchingRoute['route']->query) as $key) {
-				unset($query[$key]);
+			if($matchingRoute['route']->itemId) {
+				$app	= JFactory::getApplication();
+				$menu   = $app->getMenu();
+				$item 	= $menu->getItem($matchingRoute['route']->itemId);
+
+				foreach (array_keys($matchingRoute['route']->query) as $key) {
+					unset($query[$key]);
+				}
+
+				$uri->setPath($uri->getPath().$item->route);
+				$uri->setQuery($query);
+			} else {
+				$path = $this->getParametrizedPathForMatchingRoute($matchingRoute);
+				foreach (array_keys($matchingRoute['route']->query) as $key) {
+					unset($query[$key]);
+				}
+
+				unset($query['Itemid']);
+
+				$uri->setPath($uri->getPath().$path);
+				$uri->setQuery($query);
 			}
-
-			unset($query['Itemid']);
-
-			$uri->setPath($uri->getPath().$path);
-			$uri->setQuery($query);
 		}
 
         if (!empty($this->_cache)) {
