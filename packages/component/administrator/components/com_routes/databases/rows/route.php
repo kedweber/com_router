@@ -144,7 +144,7 @@ class ComRoutesDatabaseRowRoute extends KDatabaseRowDefault
                             {
                                 $sections[] = $current->{$column};
                             } else {
-                                $sections[] = $config->row->{$identity_column} ? $filter->sanitize($config->row->{$identity_column}) : $filter->sanitize($config->row->{$column});
+                                $sections[] = $config->row->{$identity_column} ? $config->row->{$identity_column} : $config->row->{$column};
                             }
                         }
                     }
@@ -159,15 +159,26 @@ class ComRoutesDatabaseRowRoute extends KDatabaseRowDefault
             $this->enabled = 1;
         }
 
-        $this->path   = implode('/', array_reverse($sections));
+		$sections = array_map(array($this , '__explode'), $sections);
+
+		$path = array();
+
+		foreach($sections as $section) {
+			$path = array_merge($path, $section);
+		}
+
+        $this->path = implode('/', array_reverse($path));
 
         parent::save();
     }
 
     protected function _getMenuItem($url)
     {
-		error_log($url);
-
         return JApplication::getInstance('site')->getMenu()->getItems('link', $url, true);
     }
+
+	private function __explode($item)
+	{
+		return array_reverse(explode('/', $item));
+	}
 }

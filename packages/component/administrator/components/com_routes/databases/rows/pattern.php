@@ -28,11 +28,6 @@ class ComRoutesDatabaseRowPattern extends KDatabaseRowDefault
                 $relations  = array();
                 $table      = $row->getTable();
 
-//                echo "<pre>";
-//                print_r( $table->getBehavior('routable')->getRelations());
-//                echo "</pre>";
-//                exit;
-
                 if($table->hasBehavior('routable')) {
                     $relations  = $table->getBehavior('routable')->getRelations();
                     $filters    = $table->getBehavior('routable')->getFilters();

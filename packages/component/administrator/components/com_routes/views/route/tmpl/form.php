@@ -47,32 +47,27 @@ defined('KOOWA') or die('Protected resource'); ?>
                     <div class="control-group">
                         <label class="control-label"><?= @text('Query'); ?></label>
                         <div class="controls">
-                            <div class="input-append">
-                                <?= @helper('modal.select', array(
-                                    'name'  => 'query',
-                                    'id' => 'query',
-                                    'value' => $route->query,
-                                    'link'  => @route('index.php?option=com_routes&view=menu&layout=modal&tmpl=component'),
-                                    'link_selector' => 'modal-button'
-                                ))?>
-                            </div>
+							<input class="required" type="text" name="query" value="<?= $route->query ?>" placeholder="<?= @text('Query') ?>" />
                         </div>
                     </div>
                     <div class="control-group">
-                        <label class="control-label"><?= @text('Itemid'); ?></label>
-                        <div class="controls">
-                            <div class="input-append">
-                                <?= @helper('modal.select', array(
-                                    'name'  => 'menu_title',
-                                    'id' => 'menu_title',
-                                    'target' => 'itemId',
-                                    'value' => $route->menu_title,
-                                    'link'  => @route('index.php?option=com_routes&view=menus&layout=modal&tmpl=component'),
-                                    'link_selector' => 'modal-button'
-                                ))?>
-                            </div>
-                        </div>
-                    </div>
+						<label class="control-label"><?= @text('ItemId'); ?></label>
+						<div class="controls">
+							<input type="text" name="itemId" value="<?= $route->itemId ?>" placeholder="<?= @text('ItemId') ?>" />
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label"><?= @text('Language'); ?></label>
+						<div class="controls">
+							<input type="text" name="lang" value="<?= $route->lang ?>" placeholder="<?= @text('Language') ?>" />
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label"><?= @text('Redirect'); ?></label>
+						<div class="controls">
+							<?= @helper('select.booleanlist', array('name' => 'redirect', 'selected' => $route->redirect)); ?>
+						</div>
+					</div>
                 </fieldset>
             </div>
             <div class="span4">

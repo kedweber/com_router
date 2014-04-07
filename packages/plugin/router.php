@@ -27,7 +27,7 @@ class plgSystemRouter extends JPlugin
     {
         parent::__construct($subject, $config);
 
-        $this->_cache = $this->params->get('cache');
+		$this->_cache = $this->params->get('cache');
     }
 
     /**
@@ -93,7 +93,8 @@ class Router
 
         $cacheId = 'lang='.$this->_lang.'&'.$uri->getQuery(false);
 
-        if (!empty($this->_cache)) {
+
+		if (!empty($this->_cache)) {
             $cachedPathAndQuery = $this->_cache->get('build: '.$cacheId);
 
             if (!empty($cachedPathAndQuery)) {
@@ -113,6 +114,12 @@ class Router
 		$matchingRoute = $this->getMatchingRouteFromQuery($query);
 
         if (!empty($matchingRoute)) {
+			if($matchingRoute['route']->redirect == 1) {
+				header("HTTP/1.1 301 Moved Permanently");
+				header("Location: ".JUri::root().$matchingRoute['route']->query);
+				exit;
+			}
+
 			if($matchingRoute['route']->itemId) {
 				$app	= JFactory::getApplication();
 				$menu   = $app->getMenu();
@@ -174,7 +181,15 @@ class Router
         $path = str_replace(JURI::base() . '/', '', $path);
         $path = rtrim($path, '/');
         $matchingRoute = $this->getMatchingRouteFromPath($path);
+
         if (!empty($matchingRoute)) {
+
+			if($matchingRoute['route']->redirect == 1) {
+				header("HTTP/1.1 301 Moved Permanently");
+				header("Location: ".JUri::root().$matchingRoute['route']->query);
+				exit;
+			}
+
 			$newQuery = $this->getParametrizedQueryForMatchingRoute($matchingRoute);
 			$oldQuery = $uri->getQuery(false);
 			if (!empty($oldQuery)) {
@@ -436,12 +451,13 @@ class Router
             return null;
         }
 
-        $path = str_replace('.html', '', $path);
+        $path = preg_replace('/\.[^.]*$/', '', $path);
 
         foreach ($routes as $route) {
             $route->path = $this->preparePathOrQueryRegularExpression($route->path);
 
             if (preg_match('#^'.$route->path.'$#', $path, $parameters)) {
+
                 $matchingRoute = array();
                 $matchingRoute['route'] = $route;
                 $matchingRoute['parameters'] = $parameters;
@@ -541,8 +557,9 @@ class Router
             $query->from('#__routes');
 //        }
         $query->where('enabled = 1');
-        $query->where('lang = '. $db->quote($this->_lang ? $this->_lang : $iso_code));
+        $query->where('lang IN ('. $db->quote($this->_lang ? $this->_lang : $iso_code).', '.$db->quote('*').')');
         $db->setQuery($query);
+
 
         try {
             $result = $db->loadObjectList();
@@ -559,7 +576,7 @@ class Router
                 $query->select('*');
                 $query->from('#__routes');
                 $query->where('enabled = 1');
-                $query->where('lang = '. $db->quote('en'));
+				$query->where('lang IN ('. $db->quote('en').', '.$db->quote('*').')');
                 $db->setQuery($query);
 
                 $result = $db->loadObjectList();
