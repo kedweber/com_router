@@ -36,6 +36,8 @@ class ComRoutesDatabaseRowRoute extends KDatabaseRowDefault
             'row'       => null,
         ));
 
+		$config->relations = new KConfig($config->relations);
+
         $this->load();
 
         $parts      = array_reverse(array_filter(explode("/", $config->pattern)));
