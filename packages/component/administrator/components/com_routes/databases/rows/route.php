@@ -44,8 +44,6 @@ class ComRoutesDatabaseRowRoute extends KDatabaseRowDefault
 
         $sections   = array();
 
-        $filter = $this->getService('koowa:filter.slug');
-
         $test = array();
 
         foreach($parts as $part) {
@@ -161,6 +159,8 @@ class ComRoutesDatabaseRowRoute extends KDatabaseRowDefault
             $this->enabled = 1;
         }
 
+		$sections = array_map('strtolower', $sections);
+		$sections = array_map(array($this , 'sanitize'), $sections);
 		$sections = array_map(array($this , '__explode'), $sections);
 
 		$path = array();
@@ -168,6 +168,8 @@ class ComRoutesDatabaseRowRoute extends KDatabaseRowDefault
 		foreach($sections as $section) {
 			$path = array_merge($path, $section);
 		}
+
+		$path = array_filter($path);
 
         $this->path = implode('/', array_reverse($path));
 
@@ -182,5 +184,12 @@ class ComRoutesDatabaseRowRoute extends KDatabaseRowDefault
 	private function __explode($item)
 	{
 		return array_reverse(explode('/', $item));
+	}
+
+	public function sanitize($string)
+	{
+		$filter = $this->getService('koowa:filter.slug');
+
+		return $filter->sanitize($string);
 	}
 }

@@ -88,9 +88,11 @@ class ComRoutesDatabaseBehaviorRoutable extends KDatabaseBehaviorAbstract
 
 		$cacheId = http_build_query($query);
 
-		$cache->store(array($route->path, $query), 'build: '.$cacheId);
+		if($query->path) {
+			$cache->store(array($route->path, $query), 'build: '.$cacheId);
 
-		$route->save();
+			$route->save();
+		}
     }
 
     /**

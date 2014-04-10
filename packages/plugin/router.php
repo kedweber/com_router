@@ -551,11 +551,7 @@ class Router
         $iso_code = substr(JFactory::getLanguage()->getTag(), 0, 2);
 
         $query->select('*');
-//        if($this->_lang != 'en' && $this->_lang) {
-//            $query->from('#__'.$this->_lang.'_routes');
-//        } else {
-            $query->from('#__routes');
-//        }
+        $query->from('#__routes');
         $query->where('enabled = 1');
         $query->where('lang IN ('. $db->quote($this->_lang ? $this->_lang : $iso_code).', '.$db->quote('*').')');
         $db->setQuery($query);
