@@ -70,10 +70,9 @@ class ComRoutesDatabaseBehaviorRoutable extends KDatabaseBehaviorAbstract
 		);
 
 		$route          = $this->getService('com://admin/routes.database.row.route');
-		$route->query   = 'option=com_'.$package.'&view='.$view.'&id='.$context->data->id;
+		$route->query   = 'option=com_'.$package.'&view='.KInflector::singularize($view).'&id='.$context->data->id;
 		$route->lang    = substr(JFactory::getLanguage()->getTag(), 0, 2);
 		$route->build($config);
-
 
 		$cache = JFactory::getCache('router', '');
 		$cache->setCaching(true);
