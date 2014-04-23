@@ -62,8 +62,8 @@ class ComRoutesDatabaseBehaviorRoutable extends KDatabaseBehaviorAbstract
 		$view       = KRequest::get('get.view', 'string');
 
 		$config = array(
-			'component' => $package,
-			'view'      => $view,
+			'package'	=> $package,
+			'name'      => $view,
 			'relations' => new KConfig(),
 			'pattern'   => $this->getService('com://admin/routes.model.patterns')->component($package)->view(KInflector::singularize($view))->getItem()->pattern,
 			'row'       => $context->data,

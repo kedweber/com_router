@@ -28,8 +28,8 @@ class ComRoutesDatabaseRowRoute extends KDatabaseRowDefault
     {
         $config = new KConfig(($config));
         $config->append(array(
-            'component' => null,
-            'view'      => null,
+            'package'	=> null,
+            'name'      => null,
             'pattern'   => null,
             'relations' => null,
             'filters'   => null,
@@ -72,13 +72,13 @@ class ComRoutesDatabaseRowRoute extends KDatabaseRowDefault
 
                 $item = '';
 
-                if(KInflector::isSingular($config->view)) {
+                if(KInflector::isSingular($config->name)) {
                     $params = array();
                     foreach($config->filters as $param) {
                         $params[$param] = $config->row->{$param};
                     }
 
-                    $url = 'index.php?option=com_'.$config->component.'&view='.KInflector::singularize($config->view).'&id='.$config->row->id;
+                    $url = 'index.php?option=com_'.$config->package.'&view='.KInflector::singularize($config->name).'&id='.$config->row->id;
                     if($params) {
                         $url.= '&'.http_build_query($params);
                     }
@@ -171,7 +171,9 @@ class ComRoutesDatabaseRowRoute extends KDatabaseRowDefault
 
 		$path = array_filter($path);
 
-        $this->path = implode('/', array_reverse($path));
+		$this->package		= $config->package;
+		$this->name			= $config->name;
+        $this->path			= implode('/', array_reverse($path));
 
         parent::save();
     }

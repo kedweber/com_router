@@ -38,6 +38,18 @@ defined('KOOWA') or die('Protected resource'); ?>
             <div class="span8">
                 <fieldset>
                     <legend><?= @text('Details'); ?></legend>
+					<div class="control-group">
+						<label class="control-label"><?= @text('Package'); ?></label>
+						<div class="controls">
+							<input class="required" type="text" name="package" value="<?= $route->package ?>" placeholder="<?= @text('Package') ?>" />
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label"><?= @text('Name'); ?></label>
+						<div class="controls">
+							<input class="required" type="text" name="name" value="<?= $route->name ?>" placeholder="<?= @text('Name') ?>" />
+						</div>
+					</div>
                     <div class="control-group">
                         <label class="control-label"><?= @text('Path'); ?></label>
                         <div class="controls">
@@ -50,6 +62,18 @@ defined('KOOWA') or die('Protected resource'); ?>
 							<input class="required" type="text" name="query" value="<?= $route->query ?>" placeholder="<?= @text('Query') ?>" />
                         </div>
                     </div>
+					<div class="control-group">
+						<label class="control-label"><?= @text('Redirect'); ?></label>
+						<div class="controls">
+							<?= @helper('select.booleanlist', array('name' => 'redirect', 'selected' => $route->redirect)); ?>
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label"><?= @text('Custom'); ?></label>
+						<div class="controls">
+							<?= @helper('select.booleanlist', array('name' => 'custom', 'selected' => $route->custom)); ?>
+						</div>
+					</div>
                     <div class="control-group">
 						<label class="control-label"><?= @text('ItemId'); ?></label>
 						<div class="controls">
@@ -60,12 +84,6 @@ defined('KOOWA') or die('Protected resource'); ?>
 						<label class="control-label"><?= @text('Language'); ?></label>
 						<div class="controls">
 							<input type="text" name="lang" value="<?= $route->lang ?>" placeholder="<?= @text('Language') ?>" />
-						</div>
-					</div>
-					<div class="control-group">
-						<label class="control-label"><?= @text('Redirect'); ?></label>
-						<div class="controls">
-							<?= @helper('select.booleanlist', array('name' => 'redirect', 'selected' => $route->redirect)); ?>
 						</div>
 					</div>
                 </fieldset>
