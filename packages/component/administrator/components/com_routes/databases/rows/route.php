@@ -175,7 +175,9 @@ class ComRoutesDatabaseRowRoute extends KDatabaseRowDefault
 		$this->name			= $config->name;
         $this->path			= implode('/', array_reverse($path));
 
-        parent::save();
+		if($this->path) {
+			parent::save();
+		}
     }
 
     protected function _getMenuItem($url)

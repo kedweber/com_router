@@ -38,5 +38,9 @@ class ComRoutesModelRoutes extends ComDefaultModelDefault
 		if(is_numeric($state->custom)) {
 			$query->where('tbl.custom', '=', $state->custom);
 		}
+
+		if($state->lang) {
+			$query->where('tbl.lang', '=', $state->lang);
+		}
 	}
 }

@@ -58,19 +58,18 @@ class ComRoutesDatabaseBehaviorRoutable extends KDatabaseBehaviorAbstract
     protected function _afterTableInsert(KCommandContext $context)
     {
 		//TODO: Add multilingual
-		$package    = str_replace('com_', null, KRequest::get('get.option', 'string'));
-		$view       = KRequest::get('get.view', 'string');
+		$identifier = clone $this->getMixer()->getIdentifier();
 
 		$config = array(
-			'package'	=> $package,
-			'name'      => $view,
+			'package'	=> $identifier->package,
+			'name'      => $identifier->name,
 			'relations' => new KConfig(),
-			'pattern'   => $this->getService('com://admin/routes.model.patterns')->component($package)->view(KInflector::singularize($view))->getItem()->pattern,
+			'pattern'   => $this->getService('com://admin/routes.model.patterns')->component($identifier->package)->view(KInflector::singularize($identifier->name))->getItem()->pattern,
 			'row'       => $context->data,
 		);
 
 		$route          = $this->getService('com://admin/routes.database.row.route');
-		$route->query   = 'option=com_'.$package.'&view='.KInflector::singularize($view).'&id='.$context->data->id;
+		$route->query   = 'option=com_'.$identifier->package.'&view='.KInflector::singularize($identifier->name).'&id='.$context->data->id;
 		$route->lang    = substr(JFactory::getLanguage()->getTag(), 0, 2);
 		$route->build($config);
 
@@ -79,18 +78,17 @@ class ComRoutesDatabaseBehaviorRoutable extends KDatabaseBehaviorAbstract
 
 		$query = array(
 			'lang'		=> $route->lang,
-			'option'	=> 'com_'.$package,
-			'view'		=> $view,
+			'option'	=> 'com_'.$identifier->package,
+			'view'		=> $identifier->name,
 			'format'	=> 'html',
 			'id'		=> $context->data->id,
 		);
 
 		$cacheId = http_build_query($query);
 
-		if($query->path) {
+		// TODO: TEST!
+		if($route->path) {
 			$cache->store(array($route->path, $query), 'build: '.$cacheId);
-
-			$route->save();
 		}
     }
 
