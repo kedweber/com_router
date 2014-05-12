@@ -12,6 +12,12 @@ defined('_JEXEC') or die;
 
 jimport('joomla.plugin.plugin');
 
+use Symfony\Component\Routing\Matcher\UrlMatcher;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\RouteCollection;
+use Symfony\Component\Routing\Route;
+use Symfony\Component\Routing\Generator\UrlGenerator;
+
 /**
  * Class plgSystemRouter
  */
@@ -27,7 +33,7 @@ class plgSystemRouter extends JPlugin
     {
         parent::__construct($subject, $config);
 
-		$this->_cache = $this->params->get('cache');
+		$this->_cache = false;
     }
 
     /**
@@ -89,65 +95,155 @@ class Router
      */
     public function build(&$siteRouter, &$uri)
     {
-		$this->_lang = str_replace('/', '', str_replace('index.php', '', $uri->getPath()));
+		$iso_code	= substr(JFactory::getLanguage()->getTag(), 0, 2);
 
-        $cacheId = 'lang='.$this->_lang.'&'.$uri->getQuery(false);
+		$routes = new RouteCollection();
+		$routes->add('article', new Route(
+			'{_locale}/article/{date}/{slug}.{_format}',
+			array('option' => 'com_articles', 'view' => 'article', '_format' => 'html', '_locale' => $iso_code)
+		));
 
+		$routes->add('articles', new Route(
+			'/articles.{_format}',
+			array('option' => 'com_articles', 'view' => 'articles', '_format' => 'html')
+		));
 
-		if (!empty($this->_cache)) {
-            $cachedPathAndQuery = $this->_cache->get('build: '.$cacheId);
+		$query = $uri->getQuery(true);
 
-            if (!empty($cachedPathAndQuery)) {
-                $uri->setPath($cachedPathAndQuery[0]);
-                $uri->setQuery($cachedPathAndQuery[1]);
-                return $uri;
-            }
-        }
+		$context = new RequestContext('/');
 
-        $query = $uri->getQuery(true);
+		if($query['_locale'] && ($query['_locale'] != $iso_code)) {
+			$originalApplicationLanguage = JFactory::getLanguage()->getTag();
 
-//        TODO: Fix!
-//        if (empty($matchingRoute)) {
-//            $matchingRoute = $this->getMatchingPatternFromQuery($query);
-//        }
+			$row = KService::get('com://site/articles.model.articles')->slug($query['slug'])->getItem();
 
-		$matchingRoute = $this->getMatchingRouteFromQuery($query);
+			JFactory::getLanguage()->setLanguage('fr-FR');
 
-        if (!empty($matchingRoute)) {
-			if($matchingRoute['route']->redirect == 1) {
-				header("HTTP/1.1 301 Moved Permanently");
-				header("Location: ".JUri::root().$matchingRoute['route']->query);
-				exit;
+			$row = KService::get('com://site/articles.model.articles')->id($row->id)->getItem();
+
+			if($row->id) {
+				$query['date'] = date('Y-m-d', strtotime($row->created_on));
+				$query['slug'] = $row->slug;
 			}
 
-			if($matchingRoute['route']->itemId) {
-				$app	= JFactory::getApplication();
-				$menu   = $app->getMenu();
-				$item 	= $menu->getItem($matchingRoute['route']->itemId);
-
-				foreach (array_keys($matchingRoute['route']->query) as $key) {
-					unset($query[$key]);
-				}
-
-				$uri->setPath($uri->getPath().$item->route);
-				$uri->setQuery($query);
-			} else {
-				$path = $this->getParametrizedPathForMatchingRoute($matchingRoute);
-				foreach (array_keys($matchingRoute['route']->query) as $key) {
-					unset($query[$key]);
-				}
-
-				unset($query['Itemid']);
-
-				$uri->setPath($uri->getPath().$path);
-				$uri->setQuery($query);
-			}
+			JFactory::getLanguage()->setLanguage($originalApplicationLanguage);
 		}
 
-        if (!empty($this->_cache)) {
-            $this->_cache->store(array($uri->getPath(), $uri->getQuery(false)), 'build: '.$cacheId);
-        }
+		$generator = new UrlGenerator($routes, $context);
 
+		if($query['view'] == 'articles') {
+			$url = $generator->generate('articles', array(
+				'_format' => $query['format'],
+			));
+
+			$uri->setQuery(array('format' => $query->format));
+			$uri->setPath($url);
+		}
+
+		if($query['view'] == 'article') {
+			$config =  array(
+				'date' => $query['date'],
+				'slug' => $query['slug'],
+				'_format' => $query['format']
+			);
+
+			if($query['_locale']) {
+				$config['_locale'] = $query['_locale'];
+			}
+
+			$url = $generator->generate('article', $config);
+
+			$uri->setQuery(array('format' => $query->format));
+			$uri->setPath($url);
+		}
+
+
+//		$route = new Route(
+//			'/archive/{slug}', // path
+//			array('option' => 'com_articles', 'view' => 'article'),
+//			array('month' => '[0-9]{4}-[0-9]{2}')
+//		);
+//
+//		$route = new Route('/article', array('option' => 'com_articles', 'view' => 'article'));
+//		$routes = new RouteCollection();
+//		$routes->add('route_name', $route);
+//
+//		$context = new RequestContext($_SERVER['REQUEST_URI']);
+//
+//		echo "<pre>";
+//		print_r($context);
+//		echo "</pre>";
+//		exit;
+//
+//		$matcher = new UrlMatcher($routes, $context);
+//
+//		$parameters = $matcher->match('/article');
+//
+//		print_r($parameters);
+//
+//		echo "Test";
+//		exit;
+//
+
+//		$this->_lang = str_replace('/', '', str_replace('index.php', '', $uri->getPath()));
+//
+//        $cacheId = 'lang='.$this->_lang.'&'.$uri->getQuery(false);
+//
+//
+//		if (!empty($this->_cache)) {
+//            $cachedPathAndQuery = $this->_cache->get('build: '.$cacheId);
+//
+//            if (!empty($cachedPathAndQuery)) {
+//                $uri->setPath($cachedPathAndQuery[0]);
+//                $uri->setQuery($cachedPathAndQuery[1]);
+//                return $uri;
+//            }
+//        }
+//
+//        $query = $uri->getQuery(true);
+//
+////        TODO: Fix!
+////        if (empty($matchingRoute)) {
+////            $matchingRoute = $this->getMatchingPatternFromQuery($query);
+////        }
+//
+//		$matchingRoute = $this->getMatchingRouteFromQuery($query);
+//
+//        if (!empty($matchingRoute)) {
+//			if($matchingRoute['route']->redirect == 1) {
+//				header("HTTP/1.1 301 Moved Permanently");
+//				header("Location: ".JUri::root().$matchingRoute['route']->query);
+//				exit;
+//			}
+//
+//			if($matchingRoute['route']->itemId) {
+//				$app	= JFactory::getApplication();
+//				$menu   = $app->getMenu();
+//				$item 	= $menu->getItem($matchingRoute['route']->itemId);
+//
+//				foreach (array_keys($matchingRoute['route']->query) as $key) {
+//					unset($query[$key]);
+//				}
+//
+//				$uri->setPath($uri->getPath().$item->route);
+//				$uri->setQuery($query);
+//			} else {
+//				$path = $this->getParametrizedPathForMatchingRoute($matchingRoute);
+//				foreach (array_keys($matchingRoute['route']->query) as $key) {
+//					unset($query[$key]);
+//				}
+//
+//				unset($query['Itemid']);
+//
+//				$uri->setPath($uri->getPath().$path);
+//				$uri->setQuery($query);
+//			}
+//		}
+//
+//        if (!empty($this->_cache)) {
+//            $this->_cache->store(array($uri->getPath(), $uri->getQuery(false)), 'build: '.$cacheId);
+//        }
+//
         return $uri;
     }
 
@@ -158,59 +254,87 @@ class Router
      */
     public function parse(&$siteRouter, &$uri)
     {
-        $vars = array();
+		$iso_code	= substr(JFactory::getLanguage()->getTag(), 0, 2);
 
-        $cacheId = $uri->getPath();
-        if (!empty($this->_cache)) {
-            $cachedQueryAndItemId = $this->_cache->get('parse: '.$cacheId);
+		$routes = new RouteCollection();
+		$routes->add('article', new Route(
+			'{_locale}/article/{date}/{slug}.{_format}',
+			array('option' => 'com_articles', 'view' => 'article', '_format' => 'html', '_locale' => $iso_code)
+		));
 
-            if (!empty($cachedQueryAndItemId)) {
-                $uri->setPath('');
-                $uri->setQuery($cachedQueryAndItemId[0]);
-                if ($cachedQueryAndItemId[1]) {
-                    JRequest::setVar('Itemid', $cachedQueryAndItemId[1]);
-                } else {
-                    JRequest::setVar('Itemid', null);
-                }
-                return $vars;
-            }
-        }
+		$routes->add('articles', new Route(
+			'/articles.{_format}',
+			array('option' => 'com_articles', 'view' => 'articles', '_format' => 'html')
+		));
+		$context = new RequestContext($_SERVER['REQUEST_URI']);
 
-        $path = $uri->getPath();
+		$matcher = new UrlMatcher($routes, $context);
 
-        $path = str_replace(JURI::base() . '/', '', $path);
-        $path = rtrim($path, '/');
-        $matchingRoute = $this->getMatchingRouteFromPath($path);
-
-        if (!empty($matchingRoute)) {
-
-			if($matchingRoute['route']->redirect == 1) {
-				header("HTTP/1.1 301 Moved Permanently");
-				header("Location: ".JUri::root().$matchingRoute['route']->query);
-				exit;
-			}
-
-			$newQuery = $this->getParametrizedQueryForMatchingRoute($matchingRoute);
-			$oldQuery = $uri->getQuery(false);
-			if (!empty($oldQuery)) {
-				$newQuery = $newQuery.'&'.$oldQuery;
-			}
-
-			$newQuery = preg_replace('#Itemid=[^&]*&#', '', $newQuery);
-			$newQuery = preg_replace('#&?Itemid=.*#', '', $newQuery);
+		try {
+			$parameters = $matcher->match('/en/'.$uri->getPath());
 
 			$uri->setPath('');
-			$uri->setQuery($newQuery);
-			if ($matchingRoute['route']->itemId) {
-				JRequest::setVar('Itemid', $matchingRoute['route']->itemId);
-			} else {
-				JRequest::setVar('Itemid', null);
-			}
-
-			if (!empty($this->_cache)) {
-				$this->_cache->store(array($uri->getQuery(false), $matchingRoute['route']->itemId), 'parse: '.$cacheId);
-			}
+			$uri->setQuery($parameters);
+		} catch (Exception $e) {
+//			echo 'Caught exception: ',  $e->getMessage(), "\n";
 		}
+
+//
+////		die($uri->getQuery());$uri->getQuery(true);
+
+		$vars = array();
+
+//        $cacheId = $uri->getPath();
+//        if (!empty($this->_cache)) {
+//            $cachedQueryAndItemId = $this->_cache->get('parse: '.$cacheId);
+//
+//            if (!empty($cachedQueryAndItemId)) {
+//                $uri->setPath('');
+//                $uri->setQuery($cachedQueryAndItemId[0]);
+//                if ($cachedQueryAndItemId[1]) {
+//                    JRequest::setVar('Itemid', $cachedQueryAndItemId[1]);
+//                } else {
+//                    JRequest::setVar('Itemid', null);
+//                }
+//                return $vars;
+//            }
+//        }
+//
+//        $path = $uri->getPath();
+//
+//        $path = str_replace(JURI::base() . '/', '', $path);
+//        $path = rtrim($path, '/');
+//        $matchingRoute = $this->getMatchingRouteFromPath($path);
+//
+//        if (!empty($matchingRoute)) {
+//
+//			if($matchingRoute['route']->redirect == 1) {
+//				header("HTTP/1.1 301 Moved Permanently");
+//				header("Location: ".JUri::root().$matchingRoute['route']->query);
+//				exit;
+//			}
+//
+//			$newQuery = $this->getParametrizedQueryForMatchingRoute($matchingRoute);
+//			$oldQuery = $uri->getQuery(false);
+//			if (!empty($oldQuery)) {
+//				$newQuery = $newQuery.'&'.$oldQuery;
+//			}
+//
+//			$newQuery = preg_replace('#Itemid=[^&]*&#', '', $newQuery);
+//			$newQuery = preg_replace('#&?Itemid=.*#', '', $newQuery);
+//
+//			$uri->setPath('');
+//			$uri->setQuery($newQuery);
+//			if ($matchingRoute['route']->itemId) {
+//				JRequest::setVar('Itemid', $matchingRoute['route']->itemId);
+//			} else {
+//				JRequest::setVar('Itemid', null);
+//			}
+//
+//			if (!empty($this->_cache)) {
+//				$this->_cache->store(array($uri->getQuery(false), $matchingRoute['route']->itemId), 'parse: '.$cacheId);
+//			}
+//		}
 
         return $vars;
     }
