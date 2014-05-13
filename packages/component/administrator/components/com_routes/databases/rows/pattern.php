@@ -16,9 +16,8 @@ class ComRoutesDatabaseRowPattern extends KDatabaseRowDefault
 			foreach($patterns as $pattern) {
 				$array[$pattern->slug] = array(
 					'path'			=> '/{_locale}'.$pattern->path,
-					'defaults'		=> $pattern->path,
 					'defaults'		=> array('option' => 'com_'.$pattern->package, 'view' => $pattern->name),
-					'requirements'	=> $pattern->requirements
+					'requirements'	=> $pattern->requirements ? $pattern->requirements : null
 				);
 			}
 

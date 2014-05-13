@@ -127,6 +127,9 @@ class Router
 
 			$requirements = $this->_routes->get($query['view'])->getRequirements();
 
+			$query = array_map('strtolower', $query);
+			$query = array_map(array($this , 'sanitize'), $query);
+
 			$config = new KConfig(array_merge($requirements, $query));
 			$config->append(array(
 				'_locale' => $this->_lang,
@@ -189,4 +192,15 @@ class Router
 
         return $routes;
     }
+
+	/**
+	 * @param $string
+	 * @return mixed
+	 */
+	public function sanitize($string)
+	{
+		$filter = KService::get('koowa:filter.slug');
+
+		return $filter->sanitize($string);
+	}
 }

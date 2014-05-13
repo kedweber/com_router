@@ -31,19 +31,25 @@ defined('KOOWA') or die('Protected resource'); ?>
 					<div class="control-group">
 						<label class="control-label"><?= @text('SLUG'); ?></label>
 						<div class="controls">
-							<input class="required" type="text" name="slug" value="<?= $pattern->slug; ?>" placeholder="<?= @text('SLUG') ?>" />
+							<input type="text" name="slug" value="<?= $pattern->slug; ?>" placeholder="<?= @text('SLUG') ?>" />
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label"><?= @text('PATH'); ?></label>
+						<div class="controls">
+							<input type="text" name="path" value="<?= $pattern->path; ?>" placeholder="<?= @text('PATH') ?>" />
 						</div>
 					</div>
 					<div class="control-group">
 						<label class="control-label"><?= @text('REQUIREMENTS'); ?></label>
 						<div class="controls">
-							<input class="required" type="text" name="slug" value="<?= $pattern->requirements; ?>" placeholder="<?= @text('REQUIREMENTS') ?>" />
+							<input type="text" name="slug" value="<?= $pattern->requirements; ?>" placeholder="<?= @text('REQUIREMENTS') ?>" />
 						</div>
 					</div>
                     <div class="control-group">
                         <label class="control-label"><?= @text('PACKAGE'); ?></label>
                         <div class="controls">
-                            <input class="required" type="text" name="component" value="<?= $pattern->package; ?>" placeholder="<?= @text('PACKAGE') ?>" />
+                            <input class="required" type="text" name="package" value="<?= $pattern->package; ?>" placeholder="<?= @text('PACKAGE') ?>" />
                         </div>
                     </div>
                     <div class="control-group">
