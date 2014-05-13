@@ -180,7 +180,12 @@ class Router
 		$config = array(JPATH_ADMINISTRATOR.'/components/com_routes/config');
 		$locator = new FileLocator($config);
 		$loader = new YamlFileLoader($locator);
-		$routes = $loader->load('routing.yml');
+
+		try {
+			$routes = $loader->load('routing.yml');
+		} catch (Exception $e) {
+			$routes = new RouteCollection();
+		}
 
         return $routes;
     }
