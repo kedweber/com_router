@@ -1,9 +1,0 @@
-article:
-  path:     /{_locale}/article/{date}/{slug}.{format}
-  defaults: { option: com_articles, view: article, format: html }
-  requirements:
-    date: "[0-9-_/]+"
-    slug: "[a-zA-Z0-9-_/]+"
-articles:
-  path:     /{_locale}/articles.{format}
-  defaults: { option: com_articles, view: article, format: html }

@@ -10,8 +10,6 @@
 
 defined('KOOWA') or die('Protected resource'); ?>
 
-<?= @helper('behavior.bootstrap'); ?>
-
 <?= @helper('behavior.keepalive'); ?>
 <?= @helper('behavior.validator'); ?>
 <?= @helper('behavior.mootools'); ?>
@@ -23,23 +21,35 @@ defined('KOOWA') or die('Protected resource'); ?>
         <div class="row-fluid">
             <div class="span12">
                 <fieldset>
-                    <legend><?= @text('Details'); ?></legend>
+                    <legend><?= @text('DETAILS'); ?></legend>
                     <div class="control-group">
-                        <label class="control-label"><?= @text('Pattern'); ?></label>
+                        <label class="control-label"><?= @text('TITLE'); ?></label>
                         <div class="controls">
-                            <input class="required" type="text" name="pattern" value="<?= $pattern->pattern ?>" placeholder="<?= @text('Pattern') ?>" />
+                            <input class="required" type="text" name="title" value="<?= $pattern->title; ?>" placeholder="<?= @text('TITLE') ?>" />
+                        </div>
+                    </div>
+					<div class="control-group">
+						<label class="control-label"><?= @text('SLUG'); ?></label>
+						<div class="controls">
+							<input class="required" type="text" name="slug" value="<?= $pattern->slug; ?>" placeholder="<?= @text('SLUG') ?>" />
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label"><?= @text('REQUIREMENTS'); ?></label>
+						<div class="controls">
+							<input class="required" type="text" name="slug" value="<?= $pattern->requirements; ?>" placeholder="<?= @text('REQUIREMENTS') ?>" />
+						</div>
+					</div>
+                    <div class="control-group">
+                        <label class="control-label"><?= @text('PACKAGE'); ?></label>
+                        <div class="controls">
+                            <input class="required" type="text" name="component" value="<?= $pattern->package; ?>" placeholder="<?= @text('PACKAGE') ?>" />
                         </div>
                     </div>
                     <div class="control-group">
-                        <label class="control-label"><?= @text('Component'); ?></label>
+                        <label class="control-label"><?= @text('NAME'); ?></label>
                         <div class="controls">
-                            <input class="required" type="text" name="component" value="<?= $pattern->component ?>" placeholder="<?= @text('Component') ?>" />
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label"><?= @text('View'); ?></label>
-                        <div class="controls">
-                            <input class="required" type="text" name="view" value="<?= $pattern->view ?>" placeholder="<?= @text('View') ?>" />
+                            <input class="required" type="text" name="name" value="<?= $pattern->name; ?>" placeholder="<?= @text('NAME') ?>" />
                         </div>
                     </div>
                 </fieldset>

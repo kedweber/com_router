@@ -101,7 +101,7 @@ class Router
     {
 		$query = $uri->getQuery(true);
 
-		$context = new RequestContext('/');
+		$context = new RequestContext('');
 
 		if($query['_locale'] && ($query['_locale'] != $this->_lang)) {
 			$originalApplicationLanguage = JFactory::getLanguage()->getTag();
@@ -123,18 +123,28 @@ class Router
 		$generator = new UrlGenerator($this->_routes, $context);
 
 		if(array_key_exists($query['view'], $this->_routes->all())) {
+			$format = $query['format'] ? $query['format'] : 'html';
+
 			$requirements = $this->_routes->get($query['view'])->getRequirements();
 
 			$config = new KConfig(array_merge($requirements, $query));
 			$config->append(array(
-				'_locale' => $this->_lang
+				'_locale' => $this->_lang,
+				'format' => $format
 			));
 
 			try {
 				$url = $generator->generate($query['view'], $config->toArray());
 
-				$uri->setQuery(array('format' => $query->format));
-				$uri->setPath($url);
+				// Remove format since the joomla router handles this.
+				$url	= str_replace('.'.$format, null, $url);
+
+				$url	= parse_url($url);
+				$path	= $url['path'];
+				parse_str($url['query'], $query);
+
+				$uri->setQuery(array_merge(array('format' => $format), $query));
+				$uri->setPath($path);
 			} catch (Exception $e) {}
 		}
 
@@ -156,7 +166,7 @@ class Router
 			$parameters = $matcher->match('/'.$this->_lang.'/'.$uri->getPath());
 
 			$uri->setPath('');
-			$uri->setQuery($parameters);
+			$uri->setQuery(array_merge($uri->getQuery(true), $parameters));
 		} catch (Exception $e) {}
 
         return $vars;

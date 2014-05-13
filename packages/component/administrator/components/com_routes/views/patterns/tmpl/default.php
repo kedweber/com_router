@@ -10,7 +10,6 @@
 
 defined('KOOWA') or die('Protected resource'); ?>
 
-<?= @helper('behavior.bootstrap'); ?>
 <?= @helper('behavior.mootools'); ?>
 
 <script src="media://lib_koowa/js/koowa.js" />
@@ -24,19 +23,25 @@ defined('KOOWA') or die('Protected resource'); ?>
             <tr>
                 <th width="10"></th>
                 <th>
-                    <?= @helper('grid.sort', array('column' => 'pattern')) ?>
+                    <?= @helper('grid.sort', array('column' => 'title')) ?>
+                </th>
+				<th>
+                    <?= @helper('grid.sort', array('column' => 'path')) ?>
                 </th>
                 <th>
-                    <?= @helper('grid.sort', array('column' => 'component')) ?>
+                    <?= @helper('grid.sort', array('column' => 'package')) ?>
                 </th>
                 <th>
-                    <?= @helper('grid.sort', array('column' => 'view')) ?>
+                    <?= @helper('grid.sort', array('column' => 'name')) ?>
                 </th>
+				<th>
+					<?= @helper('grid.sort', array('column' => 'enabled')) ?>
+				</th>
             </tr>
             </thead>
             <tfoot>
             <tr>
-                <td colspan="4">
+                <td colspan="20">
                     <?= @helper('paginator.pagination', array('total' => $total)) ?>
                 </td>
             </tr>
@@ -49,15 +54,21 @@ defined('KOOWA') or die('Protected resource'); ?>
                     </td>
                     <td>
                         <a href="<?= @route('view=pattern&id='.$pattern->id) ?>">
-                            <?= $pattern->pattern; ?>
+                            <?= $pattern->title; ?>
                         </a>
                     </td>
+					<td>
+						<?= $pattern->path; ?>
+					</td>
                     <td>
-                        <?= $pattern->component; ?>
+                        <?= $pattern->package; ?>
                     </td>
                     <td>
-                        <?= $pattern->view; ?>
+                        <?= $pattern->name; ?>
                     </td>
+					<td>
+						<?= @helper('grid.enable', array('row' => $pattern)); ?>
+					</td>
                 </tr>
             <? endforeach ?>
             </tbody>
