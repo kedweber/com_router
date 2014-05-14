@@ -99,30 +99,41 @@ class Router
      */
     public function build(&$siteRouter, &$uri)
     {
+		// TODO: Check if in menu and set query and path accordingly.
+		// TODO: Improve!
 		$query = $uri->getQuery(true);
 
-		$context = new RequestContext('');
+		$items = JSite::getMenu()->getItems('link', 'index.php?'.http_build_query($query), true);
 
-		if($query['_locale'] && ($query['_locale'] != $this->_lang)) {
-			$originalApplicationLanguage = JFactory::getLanguage()->getTag();
+		if($items) {
+			$uri->setQuery(array_merge($items->$query));
+			$uri->setPath($items->route);
 
-			$row = KService::get('com://site/articles.model.articles')->slug($query['slug'])->getItem();
-
-			JFactory::getLanguage()->setLanguage('fr-FR');
-
-			$row = KService::get('com://site/articles.model.articles')->id($row->id)->getItem();
-
-			if($row->id) {
-				$query['date'] = date('Y-m-d', strtotime($row->created_on));
-				$query['slug'] = $row->slug;
-			}
-
-			JFactory::getLanguage()->setLanguage($originalApplicationLanguage);
+			return $uri;
 		}
+
+		$context = new RequestContext('');
 
 		$generator = new UrlGenerator($this->_routes, $context);
 
 		if(array_key_exists($query['view'], $this->_routes->all())) {
+			// TODO: Improve!
+			if($query['_locale'] && ($query['_locale'] != $this->_lang)) {
+				$originalApplicationLanguage = JFactory::getLanguage()->getTag();
+
+				$row = KService::get('com://site/'.str_replace('com_', null, $query['option']).'.model.'.KInflector::pluralize($query['view']))->slug($query['slug'])->getItem();
+
+				JFactory::getLanguage()->setLanguage('fr-FR');
+
+				$row = KService::get('com://site/'.str_replace('com_', null, $query['option']).'.model.'.KInflector::pluralize($query['view']))->id($row->id)->getItem();
+
+				if($row->id) {
+					$query['slug'] = $row->slug;
+				}
+
+				JFactory::getLanguage()->setLanguage($originalApplicationLanguage);
+			}
+
 			$format = $query['format'] ? $query['format'] : 'html';
 
 			$requirements = $this->_routes->get($query['view'])->getRequirements();
@@ -146,6 +157,9 @@ class Router
 				$path	= $url['path'];
 				parse_str($url['query'], $query);
 
+				$uri->setVar('Itemid', $query['Itemid']);
+				unset($query['Itemid']);
+
 				$uri->setQuery(array_merge(array('format' => $format), $query));
 				$uri->setPath($path);
 			} catch (Exception $e) {}
@@ -167,6 +181,17 @@ class Router
 
 		try {
 			$parameters = $matcher->match('/'.$this->_lang.'/'.$uri->getPath());
+
+			// TODO: Improve!
+			if(KInflector::isSingular($parameters['view'])) {
+				$query = array('option' => $parameters['option'], 'view' => KInflector::pluralize($parameters['view']));
+
+				$item = JSite::getMenu()->getItems('link', 'index.php?'.http_build_query($query), true);
+
+				if($item->id) {
+					JRequest::setVar('Itemid', $item->id);
+				}
+			}
 
 			$uri->setPath('');
 			$uri->setQuery(array_merge($uri->getQuery(true), $parameters));
