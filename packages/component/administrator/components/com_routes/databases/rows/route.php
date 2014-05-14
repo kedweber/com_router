@@ -160,8 +160,8 @@ class ComRoutesDatabaseRowRoute extends KDatabaseRowDefault
         }
 
 		$sections = array_map('strtolower', $sections);
-		$sections = array_map(array($this , 'sanitize'), $sections);
 		$sections = array_map(array($this , '__explode'), $sections);
+		$sections = array_map(array($this , 'sanitize'), $sections);
 
 		$path = array();
 
