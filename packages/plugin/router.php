@@ -103,14 +103,30 @@ class Router
 		// TODO: Improve!
 		$query = $uri->getQuery(true);
 
-		$items = JSite::getMenu()->getItems('link', 'index.php?'.http_build_query($query), true);
+		$query2 = array();
+		$query2['option'] = $query['option'];
+		$query2['view'] = $query['view'];
+		$query2['id'] = $query['id'];
 
-		if($items) {
-			$uri->setQuery(array_merge($items->$query));
+		$items = JSite::getMenu()->getItems('link', 'index.php?'.http_build_query($query2), true);
+
+		if($items->id) {
+			$merged = array_diff($query, $items->query);
+			unset($merged['Itemid']);
+
+			if(is_object($this->_routes->get($query['view']))) {
+				preg_match_all('/\{(.*?)\}/ ', $this->_routes->get($query['view'])->getPattern(), $matches);
+
+				$merged = array_diff_key($merged, array_flip($matches[1]));
+			}
+
+			$uri->setQuery($merged);
 			$uri->setPath($items->route);
 
 			return $uri;
 		}
+
+		unset($query['id']);
 
 		$context = new RequestContext('');
 
@@ -138,8 +154,9 @@ class Router
 
 			$requirements = $this->_routes->get($query['view'])->getRequirements();
 
-			$query = array_map('strtolower', $query);
-			$query = array_map(array($this , 'sanitize'), $query);
+			// TODO: Both give unexpected behavior.
+//			$query = array_map('strtolower', $query);
+//			$query = array_map(array($this , 'sanitize'), $query);
 
 			$config = new KConfig(array_merge($requirements, $query));
 			$config->append(array(
