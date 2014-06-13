@@ -21,8 +21,6 @@ class ComRoutesDatabaseRowPattern extends KDatabaseRowDefault
 					'defaults'		=> array('option' => 'com_'.$pattern->package, 'view' => $pattern->name),
 					'requirements'	=> $pattern->requirements ? json_decode($pattern->requirements, true) : null
 				);
-
-				error_log($pattern->requirements);
 			}
 
 			$dumper = new Dumper();

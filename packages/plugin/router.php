@@ -25,53 +25,53 @@ use Symfony\Component\Routing\RouteCollection;
  */
 class plgSystemRouter extends JPlugin
 {
-    protected $_cache;
+	protected $_cache;
 
-    /**
-     * @param $subject
-     * @param $config
-     */
-    public function plgSystemRouter(&$subject, $config)
-    {
-        parent::__construct($subject, $config);
+	/**
+	 * @param $subject
+	 * @param $config
+	 */
+	public function plgSystemRouter(&$subject, $config)
+	{
+		parent::__construct($subject, $config);
 
 		$this->_cache = false;
-    }
+	}
 
-    /**
-     * @return bool
-     */
-    public function onAfterInitialise()
-    {
-        $app = JFactory::getApplication();
+	/**
+	 * @return bool
+	 */
+	public function onAfterInitialise()
+	{
+		$app = JFactory::getApplication();
 
-        if ($app->isAdmin()) {
-            return;
-        }
+		if ($app->isAdmin()) {
+			return;
+		}
 
-        $router = $app->getRouter();
+		$router = $app->getRouter();
 
-        $custom_router = new Router($this->getCache());
-        $router->attachBuildRule(array($custom_router, 'build'));
-        $router->attachParseRule(array($custom_router, 'parse'));
+		$custom_router = new Router($this->getCache());
+		$router->attachBuildRule(array($custom_router, 'build'));
+		$router->attachParseRule(array($custom_router, 'parse'));
 
-        return true;
-    }
+		return true;
+	}
 
-    /**
-     * @return JCache|null
-     */
-    private function getCache()
-    {
-        if (!$this->_cache) {
-            return null;
-        }
+	/**
+	 * @return JCache|null
+	 */
+	private function getCache()
+	{
+		if (!$this->_cache) {
+			return null;
+		}
 
-        $cache = JFactory::getCache('router', '');
-        $cache->setCaching(true);
+		$cache = JFactory::getCache('router', '');
+		$cache->setCaching(true);
 
-        return $cache;
-    }
+		return $cache;
+	}
 }
 
 /**
@@ -79,26 +79,26 @@ class plgSystemRouter extends JPlugin
  */
 class Router
 {
-    protected $_cache;
-    protected $_lang;
+	protected $_cache;
+	protected $_lang;
 	protected $_routes;
 	/**
 	 * @param bool $cache
 	 */
 	public function Router($cache = false)
-    {
-        $this->_cache	= $cache;
+	{
+		$this->_cache	= $cache;
 		$this->_lang	= substr(JFactory::getLanguage()->getTag(), 0, 2);
 		$this->_routes	= $this->getRoutes();
-    }
+	}
 
-    /**
-     * @param $siteRouter
-     * @param $uri
-     * @return mixed
-     */
-    public function build(&$siteRouter, &$uri)
-    {
+	/**
+	 * @param $siteRouter
+	 * @param $uri
+	 * @return mixed
+	 */
+	public function build(&$siteRouter, &$uri)
+	{
 		// TODO: Check if in menu and set query and path accordingly.
 		// TODO: Improve!
 		$query = $uri->getQuery(true);
@@ -128,18 +128,30 @@ class Router
 
 		unset($query['id']);
 
-		$context = new RequestContext('');
-
-		$generator = new UrlGenerator($this->_routes, $context);
+		$context	= new RequestContext('');
+		$generator	= new UrlGenerator($this->_routes, $context);
 
 		if(array_key_exists($query['view'], $this->_routes->all())) {
 			// TODO: Improve!
+			// TODO: Check for id.
 			if($query['_locale'] && ($query['_locale'] != $this->_lang)) {
 				$originalApplicationLanguage = JFactory::getLanguage()->getTag();
 
 				$row = KService::get('com://site/'.str_replace('com_', null, $query['option']).'.model.'.KInflector::pluralize($query['view']))->slug($query['slug'])->getItem();
 
-				JFactory::getLanguage()->setLanguage('fr-FR');
+				//TODO: Get default languages and select the default one.
+				switch ($query['_locale']) {
+					case 'en':
+						$iso_code = 'en-GB';
+						break;
+					case 'fr':
+						$iso_code = 'fr-FR';
+						break;
+					default:
+						$iso_code = 'en-GB';
+				}
+
+				JFactory::getLanguage()->setLanguage($iso_code);
 
 				$row = KService::get('com://site/'.str_replace('com_', null, $query['option']).'.model.'.KInflector::pluralize($query['view']))->id($row->id)->getItem();
 
@@ -182,16 +194,21 @@ class Router
 			} catch (Exception $e) {}
 		}
 
-        return $uri;
-    }
+		unset($query['_route']);
+		unset($query['_locale']);
 
-    /**
-     * @param $siteRouter
-     * @param $uri
-     * @return array
-     */
-    public function parse(&$siteRouter, &$uri)
-    {
+		$uri->setQuery(array_merge($uri->getQuery(true), $query));
+
+		return $uri;
+	}
+
+	/**
+	 * @param $siteRouter
+	 * @param $uri
+	 * @return array
+	 */
+	public function parse(&$siteRouter, &$uri)
+	{
 		$vars		= array();
 		$context	= new RequestContext('/');
 		$matcher	= new UrlMatcher($this->_routes, $context);
@@ -214,14 +231,14 @@ class Router
 			$uri->setQuery(array_merge($uri->getQuery(true), $parameters));
 		} catch (Exception $e) {}
 
-        return $vars;
-    }
+		return $vars;
+	}
 
-    /**
-     * @return mixed|null
-     */
-    protected function getRoutes()
-    {
+	/**
+	 * @return mixed|null
+	 */
+	protected function getRoutes()
+	{
 		$config = array(JPATH_ADMINISTRATOR.'/components/com_routes/config');
 		$locator = new FileLocator($config);
 		$loader = new YamlFileLoader($locator);
@@ -232,8 +249,8 @@ class Router
 			$routes = new RouteCollection();
 		}
 
-        return $routes;
-    }
+		return $routes;
+	}
 
 	/**
 	 * @param $string

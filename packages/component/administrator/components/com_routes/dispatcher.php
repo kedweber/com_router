@@ -18,7 +18,7 @@ class ComRoutesDispatcher extends ComDefaultDispatcher
     protected function _initialize(KConfig $config)
 	{
 		$config->append(array(
-            'controller' => 'routes',
+            'controller' => 'patterns',
 		));
 
 		parent::_initialize($config);
