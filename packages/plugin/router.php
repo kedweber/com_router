@@ -82,6 +82,7 @@ class Router
 	protected $_cache;
 	protected $_lang;
 	protected $_routes;
+
 	/**
 	 * @param bool $cache
 	 */
@@ -126,7 +127,7 @@ class Router
 			return $uri;
 		}
 
-		unset($query['id']);
+//		unset($query['id']);
 
 		$context	= new RequestContext('');
 		$generator	= new UrlGenerator($this->_routes, $context);
@@ -177,6 +178,17 @@ class Router
 			));
 
 			try {
+				$component_router	= $siteRouter->getComponentRouter($query['option']);
+				$vars				= $component_router->build($query);
+
+				if($vars) {
+					foreach($vars as $key => $var) {
+						if($var) {
+							$config->{$key} = $var;
+						}
+					}
+				}
+
 				$url = $generator->generate($query['view'], $config->toArray());
 
 				// Remove format since the joomla router handles this.
@@ -188,16 +200,18 @@ class Router
 
 				$uri->setVar('Itemid', $query['Itemid']);
 				unset($query['Itemid']);
+				unset($query['id']);
 
 				$uri->setQuery(array_merge(array('format' => $format), $query));
 				$uri->setPath($path);
 			} catch (Exception $e) {}
 		}
 
+		$query = array_filter(array_merge($uri->getQuery(true), $query));
 		unset($query['_route']);
 		unset($query['_locale']);
 
-		$uri->setQuery(array_merge($uri->getQuery(true), $query));
+		$uri->setQuery($query);
 
 		return $uri;
 	}
@@ -210,17 +224,27 @@ class Router
 	public function parse(&$siteRouter, &$uri)
 	{
 		$vars		= array();
-		$context	= new RequestContext('/');
-		$matcher	= new UrlMatcher($this->_routes, $context);
 
 		try {
-			$parameters = $matcher->match('/'.$this->_lang.'/'.$uri->getPath());
+			$parameters			= $this->getParameters('/'.$this->_lang.'/'.$uri->getPath());
+			$component_router	= $siteRouter->getComponentRouter($parameters['option']);
+			$vars				= $component_router->parse($parameters);
 
 			// TODO: Improve!
 			if(KInflector::isSingular($parameters['view'])) {
 				$query = array('option' => $parameters['option'], 'view' => KInflector::pluralize($parameters['view']));
 
 				$item = JSite::getMenu()->getItems('link', 'index.php?'.http_build_query($query), true);
+
+				if($item->id) {
+					JRequest::setVar('Itemid', $item->id);
+				}
+
+				unset($parameters['_locale']);
+				unset($parameters['_route']);
+				unset($parameters['format']);
+
+				$item = JSite::getMenu()->getItems('link', 'index.php?'.http_build_query($parameters), true);
 
 				if($item->id) {
 					JRequest::setVar('Itemid', $item->id);
@@ -239,7 +263,7 @@ class Router
 	 */
 	protected function getRoutes()
 	{
-		$config = array(JPATH_ADMINISTRATOR.'/components/com_routes/config');
+		$config = array(JPATH_ADMINISTRATOR.'/config/com_routes');
 		$locator = new FileLocator($config);
 		$loader = new YamlFileLoader($locator);
 
@@ -261,5 +285,18 @@ class Router
 		$filter = KService::get('koowa:filter.slug');
 
 		return $filter->sanitize($string);
+	}
+
+	/**
+	 * @param $url
+	 * @return array
+	 */
+	public function getParameters($url)
+	{
+		$context	= new RequestContext('/');
+		$matcher	= new UrlMatcher($this->_routes, $context);
+		$parameters = $matcher->match($url);
+
+		return $parameters;
 	}
 }

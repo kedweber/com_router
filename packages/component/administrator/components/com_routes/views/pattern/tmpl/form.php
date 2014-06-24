@@ -41,6 +41,12 @@ defined('KOOWA') or die('Protected resource'); ?>
 						</div>
 					</div>
 					<div class="control-group">
+						<label class="control-label"><?= @text('DEFAULTS'); ?></label>
+						<div class="controls">
+							<input type="text" name="defaults" value="<?= @escape($pattern->defaults); ?>" placeholder="<?= @text('DEFAULTS') ?>" />
+						</div>
+					</div>
+					<div class="control-group">
 						<label class="control-label"><?= @text('REQUIREMENTS'); ?></label>
 						<div class="controls">
 							<input type="text" name="requirements" value="<?= @escape($pattern->requirements); ?>" placeholder="<?= @text('REQUIREMENTS') ?>" />
