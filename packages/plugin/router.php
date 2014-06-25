@@ -178,8 +178,10 @@ class Router
 			));
 
 			try {
-				$component_router	= $siteRouter->getComponentRouter($query['option']);
-				$vars				= $component_router->build($query);
+				if($query['option'] != 'com_search') {
+					$component_router	= $siteRouter->getComponentRouter($query['option']);
+					$vars				= $component_router->build($query);
+				}
 
 				if($vars) {
 					foreach($vars as $key => $var) {
@@ -227,8 +229,11 @@ class Router
 
 		try {
 			$parameters			= $this->getParameters('/'.$this->_lang.'/'.$uri->getPath());
-			$component_router	= $siteRouter->getComponentRouter($parameters['option']);
-			$vars				= $component_router->parse($parameters);
+
+			if($parameters['option'] != 'com_search') {
+				$component_router	= $siteRouter->getComponentRouter($parameters['option']);
+				$vars				= $component_router->parse($parameters);
+			}
 
 			// TODO: Improve!
 			if(KInflector::isSingular($parameters['view'])) {
