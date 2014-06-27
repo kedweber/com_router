@@ -108,8 +108,11 @@ class Router
 		$query2['option'] = $query['option'];
 		$query2['view'] = $query['view'];
 		$query2['id'] = $query['id'];
+		if($query['_layout']) {
+			$query2['_layout'] = $query['_layout'];
+		}
 
-		$items = JSite::getMenu()->getItems('link', 'index.php?'.http_build_query($query2), true);
+		$items = JSite::getMenu()->getItems('link', 'index.php?'.urldecode(http_build_query($query2)), true);
 
 		if($items->id) {
 			$merged = array_diff($query, $items->query);
