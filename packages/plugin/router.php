@@ -209,7 +209,9 @@ class Router
 
 				$uri->setQuery(array_merge(array('format' => $format), $query));
 				$uri->setPath($path);
-			} catch (Exception $e) {}
+			} catch (Exception $e) {
+                error_log($e->getMessage());
+            }
 		}
 
 		$query = array_filter(array_merge($uri->getQuery(true), $query));
@@ -228,10 +230,10 @@ class Router
 	 */
 	public function parse(&$siteRouter, &$uri)
 	{
-		$vars		= array();
+		$vars = array();
 
 		try {
-			$parameters			= $this->getParameters('/'.$this->_lang.'/'.$uri->getPath());
+			$parameters	= $this->getParameters('/'.$this->_lang.'/'.$uri->getPath());
 
 			if($parameters['option'] != 'com_search') {
 				$component_router	= $siteRouter->getComponentRouter($parameters['option']);
@@ -261,7 +263,9 @@ class Router
 
 			$uri->setPath('');
 			$uri->setQuery(array_merge($uri->getQuery(true), $parameters));
-		} catch (Exception $e) {}
+		} catch (Exception $e) {
+            error_log($e->getMessage());
+        }
 
 		return $vars;
 	}
