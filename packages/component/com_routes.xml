@@ -22,12 +22,10 @@
             <file>dispatcher.php</file>
             <file>routes.php</file>
 
-            <folder>controllers</folder>
+            <folder>config</folder>
             <folder>databases</folder>
             <folder>install</folder>
             <folder>language</folder>
-            <folder>models</folder>
-            <folder>templates</folder>
             <folder>views</folder>
         </files>
 
@@ -39,10 +37,5 @@
         </languages>
 
         <menu>COM_ROUTES</menu>
-        <submenu>
-            <menu view="routes" link="option=com_routes&amp;view=routes" img="class:article">ROUTES</menu>
-            <menu view="patterns" link="option=com_routes&amp;view=patterns" img="class:article">PATTERNS</menu>
-            <menu view="rebuild" link="option=com_routes&amp;view=rebuild" img="class:article">REBUILD</menu>
-        </submenu>
 	</administration>
 </extension>
