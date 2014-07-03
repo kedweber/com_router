@@ -11,6 +11,6 @@
     <description>Router Package</description>
     <files folder="packages">
         <file type="component" id="router">component</file>
-        <file type="plugin" id="router" group="system">plugin</file>
+        <file type="plugin" id="router">plugin</file>
     </files>
 </extension>

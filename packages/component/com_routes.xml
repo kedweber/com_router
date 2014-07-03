@@ -22,7 +22,6 @@
             <file>dispatcher.php</file>
             <file>routes.php</file>
 
-            <folder>config</folder>
             <folder>databases</folder>
             <folder>install</folder>
             <folder>language</folder>
