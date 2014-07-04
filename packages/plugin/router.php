@@ -108,9 +108,6 @@ class Router
 		$query2['option'] = $query['option'];
 		$query2['view'] = $query['view'];
 		$query2['id'] = $query['id'];
-		if($query['_layout']) {
-			$query2['_layout'] = $query['_layout'];
-		}
 
 		$items = JSite::getMenu()->getItems('link', 'index.php?'.urldecode(http_build_query($query2)), true);
 
@@ -209,9 +206,7 @@ class Router
 
 				$uri->setQuery(array_merge(array('format' => $format), $query));
 				$uri->setPath($path);
-			} catch (Exception $e) {
-                error_log($e->getMessage());
-            }
+			} catch (Exception $e) {}
 		}
 
 		$query = array_filter(array_merge($uri->getQuery(true), $query));
@@ -230,19 +225,37 @@ class Router
 	 */
 	public function parse(&$siteRouter, &$uri)
 	{
-		$vars = array();
+		$vars		= array();
 
 		try {
 			$parameters	= $this->getParameters('/'.$this->_lang.'/'.$uri->getPath());
 
-			if($parameters['option'] != 'com_search') {
-				$component_router	= $siteRouter->getComponentRouter($parameters['option']);
-				$vars				= $component_router->parse($parameters);
+			$config = new KConfig();
+			$config->append(array(
+				'query' => $parameters
+			));
+
+			/**
+			 * Check if the route should be redirected.
+			 */
+			if($config->query->route && $config->query->permanent) {
+				$route = $this->_routes->get($config->query->route);
+				$config->query->append($route->getDefaults());
+
+				$component_router	= $siteRouter->getComponentRouter($config->query->option);
+				$vars				= $component_router->build($config->query->toArray());
+
+				$config->query->append(array_filter($vars));
+			}
+
+			if($config->query->option != 'com_search') {
+				$component_router	= $siteRouter->getComponentRouter($config->query->option);
+				$vars				= $component_router->parse($config->query->toArray());
 			}
 
 			// TODO: Improve!
-			if(KInflector::isSingular($parameters['view'])) {
-				$query = array('option' => $parameters['option'], 'view' => KInflector::pluralize($parameters['view']));
+			if(KInflector::isSingular($config->query->view)) {
+				$query = array('option' => $config->query->option, 'view' => KInflector::pluralize($config->query->view));
 
 				$item = JSite::getMenu()->getItems('link', 'index.php?'.http_build_query($query), true);
 
@@ -250,11 +263,13 @@ class Router
 					JRequest::setVar('Itemid', $item->id);
 				}
 
-				unset($parameters['_locale']);
-				unset($parameters['_route']);
-				unset($parameters['format']);
+				unset($config->query->_locale);
+				unset($config->query->_route);
+				unset($config->query->route);
+				unset($config->query->permanent);
+				unset($config->query->format);
 
-				$item = JSite::getMenu()->getItems('link', 'index.php?'.http_build_query($parameters), true);
+				$item = JSite::getMenu()->getItems('link', 'index.php?'.http_build_query($config->query), true);
 
 				if($item->id) {
 					JRequest::setVar('Itemid', $item->id);
@@ -262,10 +277,8 @@ class Router
 			}
 
 			$uri->setPath('');
-			$uri->setQuery(array_merge($uri->getQuery(true), $parameters));
-		} catch (Exception $e) {
-            error_log($e->getMessage());
-        }
+			$uri->setQuery(array_merge($uri->getQuery(true), $config->query->toArray()));
+		} catch (Exception $e) {}
 
 		return $vars;
 	}
