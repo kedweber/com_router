@@ -112,7 +112,7 @@ class Router
 		$items = JSite::getMenu()->getItems('link', 'index.php?'.urldecode(http_build_query($query2)), true);
 
 		if($items->id) {
-			$merged = array_diff($query, $items->query);
+			$merged = array_diff_key($query, $items->query);
 			unset($merged['Itemid']);
 
 			if(is_object($this->_routes->get($query['view']))) {
