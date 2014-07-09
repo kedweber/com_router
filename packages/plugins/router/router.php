@@ -136,31 +136,33 @@ class Router
 			// TODO: Improve!
 			// TODO: Check for id.
 			if($query['_locale'] && ($query['_locale'] != $this->_lang)) {
-				$originalApplicationLanguage = JFactory::getLanguage()->getTag();
+				try {
+					$originalApplicationLanguage = JFactory::getLanguage()->getTag();
 
-				$row = KService::get('com://site/'.str_replace('com_', null, $query['option']).'.model.'.KInflector::pluralize($query['view']))->slug($query['slug'])->getItem();
+					$row = KService::get('com://site/'.str_replace('com_', null, $query['option']).'.model.'.KInflector::pluralize($query['view']))->slug($query['slug'])->getItem();
 
-				//TODO: Get default languages and select the default one.
-				switch ($query['_locale']) {
-					case 'en':
-						$iso_code = 'en-GB';
-						break;
-					case 'fr':
-						$iso_code = 'fr-FR';
-						break;
-					default:
-						$iso_code = 'en-GB';
-				}
+					//TODO: Get default languages and select the default one.
+					switch ($query['_locale']) {
+						case 'en':
+							$iso_code = 'en-GB';
+							break;
+						case 'fr':
+							$iso_code = 'fr-FR';
+							break;
+						default:
+							$iso_code = 'en-GB';
+					}
 
-				JFactory::getLanguage()->setLanguage($iso_code);
+					JFactory::getLanguage()->setLanguage($iso_code);
 
-				$row = KService::get('com://site/'.str_replace('com_', null, $query['option']).'.model.'.KInflector::pluralize($query['view']))->id($row->id)->getItem();
+					$row = KService::get('com://site/'.str_replace('com_', null, $query['option']).'.model.'.KInflector::pluralize($query['view']))->id($row->id)->getItem();
 
-				if($row->id) {
-					$query['slug'] = $row->slug;
-				}
+					if($row->id) {
+						$query['slug'] = $row->slug;
+					}
 
-				JFactory::getLanguage()->setLanguage($originalApplicationLanguage);
+					JFactory::getLanguage()->setLanguage($originalApplicationLanguage);
+				} catch (Exception $e) {}
 			}
 
 			$format = $query['format'] ? $query['format'] : 'html';
