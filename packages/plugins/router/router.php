@@ -227,62 +227,54 @@ class Router
 	 */
 	public function parse(&$siteRouter, &$uri)
 	{
-		$vars		= array();
+        $vars = array();
+        $config = new KConfig();
 
-		try {
-			$parameters	= $this->getParameters('/'.$this->_lang.'/'.$uri->getPath());
+        /**
+         * Check if the path is a menu item
+         */
+        $item = JSite::getMenu()->getItems('route', str_replace('.html', '', $uri->getPath()), true);
 
-			$config = new KConfig();
-			$config->append(array(
-				'query' => $parameters
-			));
+        if ($item->id) {
+            parse_str(str_replace('index.php?', '',$item->link), $item_link);
+            $config->append(array(
+                'query' => $item_link
+            ));
 
-			/**
-			 * Check if the route should be redirected.
-			 */
-			if($config->query->route && $config->query->permanent) {
-				$route = $this->_routes->get($config->query->route);
-				$config->query->append($route->getDefaults());
+            JRequest::setVar('Itemid', $item->id);
+        } else { // Path is not a menu item
+            try {
+                $parameters	= $this->getParameters('/'.$this->_lang.'/'.$uri->getPath());
+                $config->append(array(
+                    'query' => $parameters
+                ));
 
-				$component_router	= $siteRouter->getComponentRouter($config->query->option);
-				$vars				= $component_router->build($config->query->toArray());
+                /**
+                 * Check if the route should be redirected.
+                 */
+                if($config->query->route && $config->query->permanent) {
+                    $route = $this->_routes->get($config->query->route);
+                    $config->query->append($route->getDefaults());
 
-				$config->query->append(array_filter($vars));
-			}
+                    $component_router	= $siteRouter->getComponentRouter($config->query->option);
+                    $vars				= $component_router->build($config->query->toArray());
 
-			if($config->query->option != 'com_search') {
-				$component_router	= $siteRouter->getComponentRouter($config->query->option);
-				$vars				= $component_router->parse($config->query->toArray());
-			}
+                    $config->query->append(array_filter($vars));
+                }
 
-			// TODO: Improve!
-			if(KInflector::isSingular($config->query->view)) {
-				$query = array('option' => $config->query->option, 'view' => KInflector::pluralize($config->query->view));
+                if($config->query->option != 'com_search') {
+                    $component_router	= $siteRouter->getComponentRouter($config->query->option);
+                    $vars				= $component_router->parse($config->query->toArray());
+                }
 
-				$item = JSite::getMenu()->getItems('link', 'index.php?'.http_build_query($query), true);
+                $uri->setPath('');
+                $uri->setQuery(array_merge($uri->getQuery(true), $config->query->toArray()));
+            } catch(Exception $e) {
+                error_log('Error parsing route, msg: ' . $e->getMessage());
+            }
+        }
 
-				if($item->id) {
-					JRequest::setVar('Itemid', $item->id);
-				}
-
-				unset($config->query->_locale);
-				unset($config->query->_route);
-				unset($config->query->route);
-				unset($config->query->permanent);
-				unset($config->query->format);
-
-				$item = JSite::getMenu()->getItems('link', 'index.php?'.http_build_query($config->query), true);
-
-				if($item->id) {
-					JRequest::setVar('Itemid', $item->id);
-				}
-			}
-
-			$uri->setPath('');
-			$uri->setQuery(array_merge($uri->getQuery(true), $config->query->toArray()));
-		} catch (Exception $e) {}
-
-		return $vars;
+        return $vars;
 	}
 
 	/**
