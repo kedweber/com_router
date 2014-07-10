@@ -236,11 +236,6 @@ class Router
         $item = JSite::getMenu()->getItems('route', str_replace('.html', '', $uri->getPath()), true);
 
         if ($item->id) {
-            parse_str(str_replace('index.php?', '',$item->link), $item_link);
-            $config->append(array(
-                'query' => $item_link
-            ));
-
             JRequest::setVar('Itemid', $item->id);
         } else { // Path is not a menu item
             try {
