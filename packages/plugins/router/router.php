@@ -187,9 +187,7 @@ class Router
 
 				if($vars) {
 					foreach($vars as $key => $var) {
-						if($var) {
-							$config->{$key} = $var;
-						}
+						$config->{$key} = $var;
 					}
 				}
 
