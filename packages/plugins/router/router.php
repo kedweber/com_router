@@ -149,6 +149,9 @@ class Router
 						case 'fr':
 							$iso_code = 'fr-FR';
 							break;
+                        case 'nl':
+                            $iso_code = 'nl-NL';
+                            break;
 						default:
 							$iso_code = 'en-GB';
 					}
