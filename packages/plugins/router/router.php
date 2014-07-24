@@ -174,52 +174,51 @@ class Router
 				} catch (Exception $e) {}
 			}
 
-				$format = isset($query['format']) ? $query['format'] : 'html';
+            $format = isset($query['format']) ? $query['format'] : 'html';
 
-				$requirements = $this->_routes->get($query['view'])->getRequirements();
+            $requirements = $this->_routes->get($query['view'])->getRequirements();
 
-				// TODO: Both give unexpected behavior.
-	//			$query = array_map('strtolower', $query);
-	//			$query = array_map(array($this , 'sanitize'), $query);
+            // TODO: Both give unexpected behavior.
+//			$query = array_map('strtolower', $query);
+//			$query = array_map(array($this , 'sanitize'), $query);
 
-				$config = new KConfig(array_merge($requirements, $query));
-				$config->append(array(
-					'_locale' => $this->_lang,
-					'format' => $format
-				));
+            $config = new KConfig(array_merge($requirements, $query));
+            $config->append(array(
+                '_locale' => $this->_lang,
+                'format' => $format
+            ));
 
-				try {
-					if($query['option'] != 'com_search') {
-						$component_router	= $siteRouter->getComponentRouter($query['option']);
-						$vars				= $component_router->build($query);
-					}
+            try {
+                if($query['option'] != 'com_search') {
+                    $component_router	= $siteRouter->getComponentRouter($query['option']);
+                    $vars				= $component_router->build($query);
+                }
 
-					if($vars) {
-						foreach($vars as $key => $var) {
-							$config->{$key} = $var;
-						}
-					}
+                if($vars) {
+                    foreach($vars as $key => $var) {
+                        $config->{$key} = $var;
+                    }
+                }
 
-					$url = $generator->generate($query['view'], $config->toArray());
+                $url = $generator->generate($query['view'], $config->toArray());
 
-					// Remove format since the joomla router handles this.
-					$url	= str_replace('.'.$format, null, $url);
+                // Remove format since the joomla router handles this.
+                $url	= str_replace('.'.$format, null, $url);
 
-					$url	= parse_url($url);
-					$path	= $url['path'];
-					parse_str($url['query'], $query);
+                $url	= parse_url($url);
+                $path	= $url['path'];
+                parse_str($url['query'], $query);
 
-					if(isset($query['Itemid'])) {
-						$uri->setVar('Itemid', $query['Itemid']);
-					}
-					unset($query['Itemid']);
-					unset($query['id']);
+                if(isset($query['Itemid'])) {
+                    $uri->setVar('Itemid', $query['Itemid']);
+                }
+                unset($query['Itemid']);
+                unset($query['id']);
 
-					$uri->setQuery(array_merge(array('format' => $format), $query));
-					$uri->setPath($path);
-				} catch (Exception $e) {}
-			}
-		}
+                $uri->setQuery(array_merge(array('format' => $format), $query));
+                $uri->setPath($path);
+            } catch (Exception $e) {}
+        }
 
 		$query = array_filter(array_merge($uri->getQuery(true), $query));
 		unset($query['_route']);
@@ -253,10 +252,6 @@ class Router
 				$config->append(array(
 					'query' => $parameters
 				));
-
-				echo "<pre>";
-				print_r($parameters);
-				echo "</pre>";
 
 				/**
 				 * Check if the route should be redirected.
