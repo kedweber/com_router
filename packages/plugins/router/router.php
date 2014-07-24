@@ -105,13 +105,19 @@ class Router
 		$query = $uri->getQuery(true);
 
 		$query2 = array();
-		$query2['option'] = $query['option'];
-		$query2['view'] = $query['view'];
-		$query2['id'] = $query['id'];
+		if (isset($query['option'])) {
+			$query2['option'] = $query['option'];
+		}
+		if (isset($query['view'])) {
+			$query2['view'] = $query['view'];
+		}
+		if (isset($query['id'])) {
+			$query2['id'] = $query['id'];
+		}
 
 		$items = JSite::getMenu()->getItems('link', 'index.php?'.urldecode(http_build_query($query2)), true);
 
-		if($items->id) {
+		if(is_object($items) && $items->id) {
 			$merged = array_diff_key($query, $items->query);
 			unset($merged['Itemid']);
 
@@ -168,48 +174,51 @@ class Router
 				} catch (Exception $e) {}
 			}
 
-			$format = $query['format'] ? $query['format'] : 'html';
+				$format = isset($query['format']) ? $query['format'] : 'html';
 
-			$requirements = $this->_routes->get($query['view'])->getRequirements();
+				$requirements = $this->_routes->get($query['view'])->getRequirements();
 
-			// TODO: Both give unexpected behavior.
-//			$query = array_map('strtolower', $query);
-//			$query = array_map(array($this , 'sanitize'), $query);
+				// TODO: Both give unexpected behavior.
+	//			$query = array_map('strtolower', $query);
+	//			$query = array_map(array($this , 'sanitize'), $query);
 
-			$config = new KConfig(array_merge($requirements, $query));
-			$config->append(array(
-				'_locale' => $this->_lang,
-				'format' => $format
-			));
+				$config = new KConfig(array_merge($requirements, $query));
+				$config->append(array(
+					'_locale' => $this->_lang,
+					'format' => $format
+				));
 
-			try {
-				if($query['option'] != 'com_search') {
-					$component_router	= $siteRouter->getComponentRouter($query['option']);
-					$vars				= $component_router->build($query);
-				}
-
-				if($vars) {
-					foreach($vars as $key => $var) {
-						$config->{$key} = $var;
+				try {
+					if($query['option'] != 'com_search') {
+						$component_router	= $siteRouter->getComponentRouter($query['option']);
+						$vars				= $component_router->build($query);
 					}
-				}
 
-				$url = $generator->generate($query['view'], $config->toArray());
+					if($vars) {
+						foreach($vars as $key => $var) {
+							$config->{$key} = $var;
+						}
+					}
 
-				// Remove format since the joomla router handles this.
-				$url	= str_replace('.'.$format, null, $url);
+					$url = $generator->generate($query['view'], $config->toArray());
 
-				$url	= parse_url($url);
-				$path	= $url['path'];
-				parse_str($url['query'], $query);
+					// Remove format since the joomla router handles this.
+					$url	= str_replace('.'.$format, null, $url);
 
-				$uri->setVar('Itemid', $query['Itemid']);
-				unset($query['Itemid']);
-				unset($query['id']);
+					$url	= parse_url($url);
+					$path	= $url['path'];
+					parse_str($url['query'], $query);
 
-				$uri->setQuery(array_merge(array('format' => $format), $query));
-				$uri->setPath($path);
-			} catch (Exception $e) {}
+					if(isset($query['Itemid'])) {
+						$uri->setVar('Itemid', $query['Itemid']);
+					}
+					unset($query['Itemid']);
+					unset($query['id']);
+
+					$uri->setQuery(array_merge(array('format' => $format), $query));
+					$uri->setPath($path);
+				} catch (Exception $e) {}
+			}
 		}
 
 		$query = array_filter(array_merge($uri->getQuery(true), $query));
@@ -228,49 +237,53 @@ class Router
 	 */
 	public function parse(&$siteRouter, &$uri)
 	{
-        $vars = array();
-        $config = new KConfig();
+		$vars = array();
+		$config = new KConfig();
 
-        /**
-         * Check if the path is a menu item
-         */
-        $item = JSite::getMenu()->getItems('route', str_replace('.html', '', $uri->getPath()), true);
+		/**
+		 * Check if the path is a menu item
+		 */
+		$item = JSite::getMenu()->getItems('route', str_replace('.html', '', $uri->getPath()), true);
 
-        if ($item->id) {
-            JRequest::setVar('Itemid', $item->id);
-        } else { // Path is not a menu item
-            try {
-                $parameters	= $this->getParameters('/'.$this->_lang.'/'.$uri->getPath());
-                $config->append(array(
-                    'query' => $parameters
-                ));
+		if (isset($item->id)) {
+			JRequest::setVar('Itemid', $item->id);
+		} else { // Path is not a menu item
+			try {
+				$parameters	= $this->getParameters('/'.$this->_lang.'/'.$uri->getPath());
+				$config->append(array(
+					'query' => $parameters
+				));
 
-                /**
-                 * Check if the route should be redirected.
-                 */
-                if($config->query->route && $config->query->permanent) {
-                    $route = $this->_routes->get($config->query->route);
-                    $config->query->append($route->getDefaults());
+				echo "<pre>";
+				print_r($parameters);
+				echo "</pre>";
 
-                    $component_router	= $siteRouter->getComponentRouter($config->query->option);
-                    $vars				= $component_router->build($config->query->toArray());
+				/**
+				 * Check if the route should be redirected.
+				 */
+				if($config->query->route && $config->query->permanent) {
+					$route = $this->_routes->get($config->query->route);
+					$config->query->append($route->getDefaults());
 
-                    $config->query->append(array_filter($vars));
-                }
+					$component_router	= $siteRouter->getComponentRouter($config->query->option);
+					$vars				= $component_router->build($config->query->toArray());
 
-                if($config->query->option != 'com_search') {
-                    $component_router	= $siteRouter->getComponentRouter($config->query->option);
-                    $vars				= $component_router->parse($config->query->toArray());
-                }
+					$config->query->append(array_filter($vars));
+				}
 
-                $uri->setPath('');
-                $uri->setQuery(array_merge($uri->getQuery(true), $config->query->toArray()));
-            } catch(Exception $e) {
-                error_log('Error parsing route, msg: ' . $e->getMessage());
-            }
-        }
+				if($config->query->option != 'com_search') {
+					$component_router	= $siteRouter->getComponentRouter($config->query->option);
+					$vars				= $component_router->parse($config->query->toArray());
+				}
 
-        return $vars;
+				$uri->setPath('');
+				$uri->setQuery(array_merge($uri->getQuery(true), $config->query->toArray()));
+			} catch(Exception $e) {
+				error_log('Error parsing route, msg: ' . $e->getMessage());
+			}
+		}
+
+		return $vars;
 	}
 
 	/**
