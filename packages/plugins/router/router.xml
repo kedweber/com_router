@@ -10,7 +10,7 @@
     <description>Router</description>
 
     <files>
-        <filename plugin="router">router.php</filename>
+        <file plugin="router">router.php</file>
     </files>
 
     <config>
