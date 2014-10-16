@@ -127,6 +127,8 @@ class Router
 				$merged = array_diff_key($merged, array_flip($matches[1]));
 			}
 
+            $merged['format'] = $query['format'] ? $query['format'] : 'html';
+
 			$uri->setQuery($merged);
 			$uri->setPath($items->route);
 
