@@ -255,7 +255,19 @@ class Router
 					'query' => $parameters
 				));
 
-				/**
+                // Check for redirect
+                if (isset($parameters['permanent']) && $parameters['permanent'] == 1 &&
+                    isset($parameters['route'])) {
+
+                    foreach ($this->getRoutes()->get($parameters['route'])->getDefaults() as $name => $value) {
+                        $uri->setVar($name, $value);
+                    }
+
+                    $url = JRoute::_('index.php?' . $uri->getQuery());
+                    JFactory::getApplication()->redirect($url, true);
+                }
+
+                /**
 				 * Check if the route should be redirected.
 				 */
 				if($config->query->route && $config->query->permanent) {
@@ -288,17 +300,21 @@ class Router
 	 */
 	protected function getRoutes()
 	{
+        if ($this->_routes) {
+            return $this->_routes;
+        }
+
 		$config = array(JPATH_ADMINISTRATOR.'/config/com_routes');
 		$locator = new FileLocator($config);
 		$loader = new YamlFileLoader($locator);
 
 		try {
-			$routes = $loader->load('routing.yml');
+			$this->_routes = $loader->load('routing.yml');
 		} catch (Exception $e) {
-			$routes = new RouteCollection();
+			$this->_routes = new RouteCollection();
 		}
 
-		return $routes;
+		return $this->_routes;
 	}
 
 	/**
@@ -320,8 +336,8 @@ class Router
 	{
 		$context	= new RequestContext('/');
 		$matcher	= new UrlMatcher($this->_routes, $context);
-		$parameters = $matcher->match($url);
-
-		return $parameters;
+        $parameters = $matcher->match($url);
+        
+        return $parameters;
 	}
 }
