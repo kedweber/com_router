@@ -2,7 +2,7 @@
 /**
  * PlgRouter
  *
- * @author      Dave Li <info@kubica.nl>
+ * @author      Joep van der Heijden <joep@moyoweb.nl>
  * @category    Joomla
  * @package     Components
  * @subpackage  Router
@@ -18,6 +18,7 @@ use Symfony\Component\Routing\Loader\YamlFileLoader;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
+use Symfony\Component\Routing\Router as SymfonyRouter;
 use Symfony\Component\Routing\RouteCollection;
 
 /**
@@ -82,6 +83,7 @@ class Router
 	protected $_cache;
 	protected $_lang;
 	protected $_routes;
+    protected $_router;
 
 	/**
 	 * @param bool $cache
@@ -90,7 +92,8 @@ class Router
 	{
 		$this->_cache	= $cache;
 		$this->_lang	= substr(JFactory::getLanguage()->getTag(), 0, 2);
-		$this->_routes	= $this->getRoutes();
+		$this->_router	= $this->getSymfonyRouter();
+		$this->_routes	= $this->_router->getRouteCollection();
 	}
 
 	/**
@@ -100,8 +103,6 @@ class Router
 	 */
 	public function build(&$siteRouter, &$uri)
 	{
-		// TODO: Check if in menu and set query and path accordingly.
-		// TODO: Improve!
 		$query = $uri->getQuery(true);
 
 		$query2 = array();
@@ -115,6 +116,9 @@ class Router
 			$query2['id'] = $query['id'];
 		}
 
+        /**
+         * Check if the uri is a menu item.
+         */
 		$items = JSite::getMenu()->getItems('link', 'index.php?'.urldecode(http_build_query($query2)), true);
 
 		if(is_object($items) && $items->id) {
@@ -135,10 +139,7 @@ class Router
 			return $uri;
 		}
 
-//		unset($query['id']);
-
-		$context	= new RequestContext('');
-		$generator	= new UrlGenerator($this->_routes, $context);
+        $generator = $this->_router->getGenerator();
 
 		if(array_key_exists($query['view'], $this->_routes->all())) {
 			// TODO: Improve!
@@ -179,10 +180,6 @@ class Router
             $format = isset($query['format']) ? $query['format'] : 'html';
 
             $requirements = $this->_routes->get($query['view'])->getRequirements();
-
-            // TODO: Both give unexpected behavior.
-//			$query = array_map('strtolower', $query);
-//			$query = array_map(array($this , 'sanitize'), $query);
 
             $config = new KConfig(array_merge($requirements, $query));
             $config->append(array(
@@ -248,96 +245,97 @@ class Router
 
 		if (isset($item->id)) {
 			JRequest::setVar('Itemid', $item->id);
-		} else { // Path is not a menu item
-			try {
-				$parameters	= $this->getParameters('/'.$this->_lang.'/'.$uri->getPath());
-				$config->append(array(
-					'query' => $parameters
-				));
+		} else {
+            /**
+             * Path is not a menu item. Resolve path with the Symfony Router.
+             */
+            try {
+                $parameters = $this->_router->match('/' . $this->_lang . '/' . $uri->getPath());
+            } catch (\Symfony\Component\Routing\Exception\ResourceNotFoundException $e) {
+                // Return a 404
+                return $vars;
+            } catch (\Symfony\Component\Routing\Exception\MethodNotAllowedException $e) {
+                // Return a 405
+                // TODO: raise 405.
+                return $vars;
+            }
 
-                // Check for redirect
-                if (isset($parameters['permanent']) && $parameters['permanent'] == 1 &&
-                    isset($parameters['route'])) {
+            $config->append(array(
+                'query' => $parameters
+            ));
 
-                    foreach ($this->getRoutes()->get($parameters['route'])->getDefaults() as $name => $value) {
-                        $uri->setVar($name, $value);
+            /**
+             * Check if the route should be redirected
+             */
+            if($config->query->route && $config->query->permanent) {
+                // redirect only on a specific view?
+                if ($config->query->view) {
+                    if ($config->query->view == $uri->getVar('view')) {
+                        $this->redirect($config, $siteRouter, $uri);
                     }
-
-                    $url = JRoute::_('index.php?' . $uri->getQuery());
-                    JFactory::getApplication()->redirect($url, true);
+                } else {
+                    $this->redirect($config, $siteRouter, $uri);
                 }
+            }
 
-                /**
-				 * Check if the route should be redirected.
-				 */
-				if($config->query->route && $config->query->permanent) {
-					$route = $this->_routes->get($config->query->route);
-					$config->query->append($route->getDefaults());
+            /**
+             * Get the component router and parse it there.
+             */
+            if($config->query->option != 'com_search') {
+                $component_router	= $siteRouter->getComponentRouter($config->query->option);
+                $vars				= $component_router->parse($config->query->toArray());
+            }
 
-					$component_router	= $siteRouter->getComponentRouter($config->query->option);
-					$vars				= $component_router->build($config->query->toArray());
-
-					$config->query->append(array_filter($vars));
-				}
-
-				if($config->query->option != 'com_search') {
-					$component_router	= $siteRouter->getComponentRouter($config->query->option);
-					$vars				= $component_router->parse($config->query->toArray());
-				}
-
-				$uri->setPath('');
-				$uri->setQuery(array_merge($uri->getQuery(true), $config->query->toArray()));
-			} catch(Exception $e) {
-				error_log('Error parsing route, msg: ' . $e->getMessage());
-			}
+            $uri->setPath('');
+            $uri->setQuery(array_merge($uri->getQuery(true), $config->query->toArray()));
 		}
 
 		return $vars;
 	}
 
-	/**
-	 * @return mixed|null
-	 */
-	protected function getRoutes()
-	{
-        if ($this->_routes) {
-            return $this->_routes;
+    protected function redirect($config, $siteRouter, $uri)
+    {
+        $route = $this->_router->getRouteCollection()->get($config->query->route);
+
+        $config->query->append($route->getDefaults());
+
+        // Override view. View is overriden if it's a redirect for a certain view.
+        $config->query->view = $route->getDefault('view');
+
+        $arr = array();
+        parse_str($uri->getQuery(), $arr);
+        $config->query->append($arr);
+
+        $component_router	= $siteRouter->getComponentRouter($config->query->option);
+        $vars				= $component_router->build($config->query->toArray());
+
+        // Add option and view to $vars
+        if (!$vars['option']) {
+            $vars['option'] = $config->query->option;
+        }
+        if (!$vars['view']) {
+            $vars['view'] = $config->query->view;
         }
 
-		$config = array(JPATH_ADMINISTRATOR.'/config/com_routes');
-		$locator = new FileLocator($config);
-		$loader = new YamlFileLoader($locator);
+        // Build the query and strip empty values in the $vars array.
+        $path = http_build_query(array_filter($vars));
 
-		try {
-			$this->_routes = $loader->load('routing.yml');
-		} catch (Exception $e) {
-			$this->_routes = new RouteCollection();
-		}
+        $url = JRoute::_('index.php?' . $path);
 
-		return $this->_routes;
-	}
+        JFactory::getApplication()->redirect($url, true);
+        // Request exits after the redirect.
+    }
 
-	/**
-	 * @param $string
-	 * @return mixed
-	 */
-	public function sanitize($string)
-	{
-		$filter = KService::get('koowa:filter.slug');
+    protected function getSymfonyRouter()
+    {
+        // Set up the Loader
+        $config = array(JPATH_ADMINISTRATOR.'/config/com_routes');
+        $locator = new FileLocator($config);
+        $loader = new YamlFileLoader($locator);
 
-		return $filter->sanitize($string);
-	}
+        // Set up main resource
+        $resource = 'routing.yml';
 
-	/**
-	 * @param $url
-	 * @return array
-	 */
-	public function getParameters($url)
-	{
-		$context	= new RequestContext('/');
-		$matcher	= new UrlMatcher($this->_routes, $context);
-        $parameters = $matcher->match($url);
-        
-        return $parameters;
-	}
+        return new SymfonyRouter($loader, $resource);
+    }
 }
