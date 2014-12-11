@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" version="3.0.0" method="upgrade" overwrite="true">
-	<name>Routes</name>
+    <name>Routes</name>
     <identifier>com:routes</identifier>
-    <author>Dave Li</author>
+    <author>Joep van der Heijden</author>
     <creationDate>July 2013</creationDate>
-    <copyright>(C) 2013 Dave Li. All rights reserved.</copyright>
-    <license>GNU General Public License version 3 or later.</license>
-    <authorEmail>info@kubica.nl</authorEmail>
-    <authorUrl>www.kubica.nl</authorUrl>
-    <version>2.0.7</version>
+    <copyright>Copyright (C) 2013 Moyo Web Architects and Contributors. (http://www.moyoweb.nl)</copyright>
+    <license>http://www.gnu.org/licenses/gpl.html GNU/GPL v3</license>
+    <authorEmail>joep.van.der.heijden@moyoweb.nl</authorEmail>
+    <authorUrl>www.moyoweb.nl</authorUrl>
+    <version>2.0.9</version>
     <description>Routes</description>
 
     <install>
@@ -36,5 +36,5 @@
         </languages>
 
         <menu>COM_ROUTES</menu>
-	</administration>
+    </administration>
 </extension>
