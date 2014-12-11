@@ -2,16 +2,23 @@
     "name": "cta/router",
     "type": "joomlatools-installer",
     "description": "Router Package",
-    "keywords": ["joomla", "router"],
+    "keywords": ["joomla", "nooku", "router"],
     "homepage": "https://github.com/cta-int/router",
     "authors": [
         {
-            "name": "Dave Li",
-            "email": "dave@moyoweb.nl",
+            "name": "Joep van der Heijden",
+            "email": "joep.van.der.heijden@moyoweb.nl",
             "homepage": "http://www.moyoweb.nl"
+        },
+        {
+            "name": "Dave Li"
         }
     ],
     "require": {
-        "joomlatools/installer": "*"
+        "joomlatools/installer": "*",
+        "symfony/routing": "2.6.*",
+        "symfony/yaml": "2.6.*",
+        "symfony/config": "2.6.*",
+        "symfony/expression-language": "2.6.*"
     }
 }
