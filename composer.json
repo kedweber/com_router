@@ -2,7 +2,7 @@
     "name": "cta/router",
     "type": "joomlatools-installer",
     "description": "Router Package",
-    "keywords": ["joomla", "router"],
+    "keywords": ["joomla", "nooku", "router"],
     "homepage": "https://github.com/cta-int/router",
     "authors": [
         {
