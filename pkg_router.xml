@@ -10,7 +10,6 @@
     <packagerurl>http://www.moyoweb.nl/</packagerurl>
     <description>Router Package</description>
     <files folder="packages">
-        <file type="component" id="router">component</file>
         <file type="plugin" id="router" group="system">plugins/router</file>
     </files>
 </extension>
