@@ -329,7 +329,7 @@ class Router
     protected function getSymfonyRouter()
     {
         // Set up the Loader
-        $config = array(JPATH_ADMINISTRATOR.'/config/com_routes');
+        $config = array(JPATH_ADMINISTRATOR.'/config/router');
         $locator = new FileLocator($config);
         $loader = new YamlFileLoader($locator);
 
