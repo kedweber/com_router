@@ -133,8 +133,10 @@ class Router
 
             $merged['format'] = $query['format'] ? $query['format'] : 'html';
 
+			$langTag = $query['_locale'] ? $query['_locale'] : substr($items->language, 0, 2);
+
 			$uri->setQuery($merged);
-			$uri->setPath($items->route);
+			$uri->setPath($langTag . '/' . $items->route);
 
 			return $uri;
 		}

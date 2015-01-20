@@ -1,5 +1,9 @@
 # changelog for router
 
+### 3.0.1 - 20 january 2015
+
+* Fixed issue where language tag was missing in the URL
+
 ### 3.0.0 - 5 january 2015
 
 * Added changelog
