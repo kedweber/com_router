@@ -131,9 +131,9 @@ class Router
 				$merged = array_diff_key($merged, array_flip($matches[1]));
 			}
 
-            $merged['format'] = $query['format'] ? $query['format'] : 'html';
+            $merged['format'] = isset($query['format']) ? $query['format'] : 'html';
 
-			$langTag = $query['_locale'] ? $query['_locale'] : substr($items->language, 0, 2);
+			$langTag = isset($query['_locale']) ? $query['_locale'] : substr($items->language, 0, 2);
 
 			$uri->setQuery($merged);
 			$uri->setPath($langTag . '/' . $items->route);
@@ -143,10 +143,10 @@ class Router
 
         $generator = $this->_router->getGenerator();
 
-		if(array_key_exists($query['view'], $this->_routes->all())) {
+		if(isset($query['view']) && array_key_exists($query['view'], $this->_routes->all())) {
 			// TODO: Improve!
 			// TODO: Check for id.
-			if($query['_locale'] && ($query['_locale'] != $this->_lang)) {
+			if(isset($query['_locale']) && ($query['_locale'] != $this->_lang)) {
 				try {
 					$originalApplicationLanguage = JFactory::getLanguage()->getTag();
 
@@ -208,7 +208,7 @@ class Router
 
                 $url	= parse_url($url);
                 $path	= $url['path'];
-                parse_str($url['query'], $query);
+                parse_str(isset($url['query']) ? $url['query'] : '', $query);
 
                 if(isset($query['Itemid'])) {
                     $uri->setVar('Itemid', $query['Itemid']);
