@@ -144,8 +144,6 @@ class Router
         $generator = $this->_router->getGenerator();
 
         if(isset($query['view']) && array_key_exists($query['view'], $this->_routes->all())) {
-            // TODO: Improve!
-            // TODO: Check for id.
             if(isset($query['_locale']) && ($query['_locale'] != $this->_lang)) {
                 try {
                     $originalApplicationLanguage = JFactory::getLanguage()->getTag();
@@ -191,8 +189,8 @@ class Router
 
             try {
                 if($query['option'] != 'com_search') {
-                    $component_router	= $siteRouter->getComponentRouter($query['option']);
-                    $vars				= $component_router->build($query);
+                    $component_router   = $siteRouter->getComponentRouter($query['option']);
+                    $vars               = $component_router->build($query);
                 }
 
                 if($vars) {
@@ -284,8 +282,8 @@ class Router
              * Get the component router and parse it there.
              */
             if($config->query->option != 'com_search') {
-                $component_router	= $siteRouter->getComponentRouter($config->query->option);
-                $vars				= $component_router->parse($config->query->toArray());
+                $component_router   = $siteRouter->getComponentRouter($config->query->option);
+                $vars               = $component_router->parse($config->query->toArray());
             }
 
             $uri->setPath('');
@@ -308,8 +306,8 @@ class Router
         parse_str($uri->getQuery(), $arr);
         $config->query->append($arr);
 
-        $component_router	= $siteRouter->getComponentRouter($config->query->option);
-        $vars				= $component_router->build($config->query->toArray());
+        $component_router   = $siteRouter->getComponentRouter($config->query->option);
+        $vars               = $component_router->build($config->query->toArray());
 
         // Add option and view to $vars
         if (!$vars['option']) {
