@@ -1,5 +1,10 @@
 # changelog for router
 
+### 3.0.2 - 24 february 2015
+
+* Fixed some whitespace issues
+* Added a License
+
 ### 3.0.1 - 20 january 2015
 
 * Fixed issue where language tag was missing in the URL

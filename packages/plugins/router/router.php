@@ -26,53 +26,53 @@ use Symfony\Component\Routing\RouteCollection;
  */
 class plgSystemRouter extends JPlugin
 {
-	protected $_cache;
+    protected $_cache;
 
-	/**
-	 * @param $subject
-	 * @param $config
-	 */
-	public function plgSystemRouter(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
+    /**
+     * @param $subject
+     * @param $config
+     */
+    public function plgSystemRouter(&$subject, $config)
+    {
+        parent::__construct($subject, $config);
 
-		$this->_cache = false;
-	}
+        $this->_cache = false;
+    }
 
-	/**
-	 * @return bool
-	 */
-	public function onAfterInitialise()
-	{
-		$app = JFactory::getApplication();
+    /**
+     * @return bool
+     */
+    public function onAfterInitialise()
+    {
+        $app = JFactory::getApplication();
 
-		if ($app->isAdmin()) {
-			return;
-		}
+        if ($app->isAdmin()) {
+            return;
+        }
 
-		$router = $app->getRouter();
+        $router = $app->getRouter();
 
-		$custom_router = new Router($this->getCache());
-		$router->attachBuildRule(array($custom_router, 'build'));
-		$router->attachParseRule(array($custom_router, 'parse'));
+        $custom_router = new Router($this->getCache());
+        $router->attachBuildRule(array($custom_router, 'build'));
+        $router->attachParseRule(array($custom_router, 'parse'));
 
-		return true;
-	}
+        return true;
+    }
 
-	/**
-	 * @return JCache|null
-	 */
-	private function getCache()
-	{
-		if (!$this->_cache) {
-			return null;
-		}
+    /**
+     * @return JCache|null
+     */
+    private function getCache()
+    {
+        if (!$this->_cache) {
+            return null;
+        }
 
-		$cache = JFactory::getCache('router', '');
-		$cache->setCaching(true);
+        $cache = JFactory::getCache('router', '');
+        $cache->setCaching(true);
 
-		return $cache;
-	}
+        return $cache;
+    }
 }
 
 /**
@@ -80,104 +80,102 @@ class plgSystemRouter extends JPlugin
  */
 class Router
 {
-	protected $_cache;
-	protected $_lang;
-	protected $_routes;
+    protected $_cache;
+    protected $_lang;
+    protected $_routes;
     protected $_router;
 
-	/**
-	 * @param bool $cache
-	 */
-	public function Router($cache = false)
-	{
-		$this->_cache	= $cache;
-		$this->_lang	= substr(JFactory::getLanguage()->getTag(), 0, 2);
-		$this->_router	= $this->getSymfonyRouter();
-		$this->_routes	= $this->_router->getRouteCollection();
-	}
+    /**
+     * @param bool $cache
+     */
+    public function Router($cache = false)
+    {
+        $this->_cache	= $cache;
+        $this->_lang	= substr(JFactory::getLanguage()->getTag(), 0, 2);
+        $this->_router	= $this->getSymfonyRouter();
+        $this->_routes	= $this->_router->getRouteCollection();
+    }
 
-	/**
-	 * @param $siteRouter
-	 * @param $uri
-	 * @return mixed
-	 */
-	public function build(&$siteRouter, &$uri)
-	{
-		$query = $uri->getQuery(true);
+    /**
+     * @param $siteRouter
+     * @param $uri
+     * @return mixed
+     */
+    public function build(&$siteRouter, &$uri)
+    {
+        $query = $uri->getQuery(true);
 
-		$query2 = array();
-		if (isset($query['option'])) {
-			$query2['option'] = $query['option'];
-		}
-		if (isset($query['view'])) {
-			$query2['view'] = $query['view'];
-		}
-		if (isset($query['id'])) {
-			$query2['id'] = $query['id'];
-		}
+        $query2 = array();
+        if (isset($query['option'])) {
+            $query2['option'] = $query['option'];
+        }
+        if (isset($query['view'])) {
+            $query2['view'] = $query['view'];
+        }
+        if (isset($query['id'])) {
+            $query2['id'] = $query['id'];
+        }
 
         /**
          * Check if the uri is a menu item.
          */
-		$items = JSite::getMenu()->getItems('link', 'index.php?'.urldecode(http_build_query($query2)), true);
+        $items = JSite::getMenu()->getItems('link', 'index.php?'.urldecode(http_build_query($query2)), true);
 
-		if(is_object($items) && $items->id) {
-			$merged = array_diff_key($query, $items->query);
-			unset($merged['Itemid']);
+        if(is_object($items) && $items->id) {
+            $merged = array_diff_key($query, $items->query);
+            unset($merged['Itemid']);
 
-			if(is_object($this->_routes->get($query['view']))) {
-				preg_match_all('/\{(.*?)\}/ ', $this->_routes->get($query['view'])->getPattern(), $matches);
+            if(is_object($this->_routes->get($query['view']))) {
+                preg_match_all('/\{(.*?)\}/ ', $this->_routes->get($query['view'])->getPattern(), $matches);
 
-				$merged = array_diff_key($merged, array_flip($matches[1]));
-			}
+                $merged = array_diff_key($merged, array_flip($matches[1]));
+            }
 
-            $merged['format'] = $query['format'] ? $query['format'] : 'html';
+            $merged['format'] = isset($query['format']) ? $query['format'] : 'html';
 
-			$langTag = $query['_locale'] ? $query['_locale'] : substr($items->language, 0, 2);
+            $langTag = isset($query['_locale']) ? $query['_locale'] : substr($items->language, 0, 2);
 
-			$uri->setQuery($merged);
-			$uri->setPath($langTag . '/' . $items->route);
+            $uri->setQuery($merged);
+            $uri->setPath($langTag . '/' . $items->route);
 
-			return $uri;
-		}
+            return $uri;
+        }
 
         $generator = $this->_router->getGenerator();
 
-		if(array_key_exists($query['view'], $this->_routes->all())) {
-			// TODO: Improve!
-			// TODO: Check for id.
-			if($query['_locale'] && ($query['_locale'] != $this->_lang)) {
-				try {
-					$originalApplicationLanguage = JFactory::getLanguage()->getTag();
+        if(isset($query['view']) && array_key_exists($query['view'], $this->_routes->all())) {
+            if(isset($query['_locale']) && ($query['_locale'] != $this->_lang)) {
+                try {
+                    $originalApplicationLanguage = JFactory::getLanguage()->getTag();
 
-					$row = KService::get('com://site/'.str_replace('com_', null, $query['option']).'.model.'.KInflector::pluralize($query['view']))->slug($query['slug'])->getItem();
+                    $row = KService::get('com://site/'.str_replace('com_', null, $query['option']).'.model.'.KInflector::pluralize($query['view']))->slug($query['slug'])->getItem();
 
-					//TODO: Get default languages and select the default one.
-					switch ($query['_locale']) {
-						case 'en':
-							$iso_code = 'en-GB';
-							break;
-						case 'fr':
-							$iso_code = 'fr-FR';
-							break;
+                    //TODO: Get default languages and select the default one.
+                    switch ($query['_locale']) {
+                        case 'en':
+                            $iso_code = 'en-GB';
+                            break;
+                        case 'fr':
+                            $iso_code = 'fr-FR';
+                            break;
                         case 'nl':
                             $iso_code = 'nl-NL';
                             break;
-						default:
-							$iso_code = 'en-GB';
-					}
+                        default:
+                            $iso_code = 'en-GB';
+                    }
 
-					JFactory::getLanguage()->setLanguage($iso_code);
+                    JFactory::getLanguage()->setLanguage($iso_code);
 
-					$row = KService::get('com://site/'.str_replace('com_', null, $query['option']).'.model.'.KInflector::pluralize($query['view']))->id($row->id)->getItem();
+                    $row = KService::get('com://site/'.str_replace('com_', null, $query['option']).'.model.'.KInflector::pluralize($query['view']))->id($row->id)->getItem();
 
-					if($row->id) {
-						$query['slug'] = $row->slug;
-					}
+                    if($row->id) {
+                        $query['slug'] = $row->slug;
+                    }
 
-					JFactory::getLanguage()->setLanguage($originalApplicationLanguage);
-				} catch (Exception $e) {}
-			}
+                    JFactory::getLanguage()->setLanguage($originalApplicationLanguage);
+                } catch (Exception $e) {}
+            }
 
             $format = isset($query['format']) ? $query['format'] : 'html';
 
@@ -191,8 +189,8 @@ class Router
 
             try {
                 if($query['option'] != 'com_search') {
-                    $component_router	= $siteRouter->getComponentRouter($query['option']);
-                    $vars				= $component_router->build($query);
+                    $component_router   = $siteRouter->getComponentRouter($query['option']);
+                    $vars               = $component_router->build($query);
                 }
 
                 if($vars) {
@@ -208,7 +206,7 @@ class Router
 
                 $url	= parse_url($url);
                 $path	= $url['path'];
-                parse_str($url['query'], $query);
+                parse_str(isset($url['query']) ? $url['query'] : '', $query);
 
                 if(isset($query['Itemid'])) {
                     $uri->setVar('Itemid', $query['Itemid']);
@@ -221,33 +219,33 @@ class Router
             } catch (Exception $e) {}
         }
 
-		$query = array_filter(array_merge($uri->getQuery(true), $query));
-		unset($query['_route']);
-		unset($query['_locale']);
+        $query = array_filter(array_merge($uri->getQuery(true), $query));
+        unset($query['_route']);
+        unset($query['_locale']);
 
-		$uri->setQuery($query);
+        $uri->setQuery($query);
 
-		return $uri;
-	}
+        return $uri;
+    }
 
-	/**
-	 * @param $siteRouter
-	 * @param $uri
-	 * @return array
-	 */
-	public function parse(&$siteRouter, &$uri)
-	{
-		$vars = array();
-		$config = new KConfig();
+    /**
+     * @param $siteRouter
+     * @param $uri
+     * @return array
+     */
+    public function parse(&$siteRouter, &$uri)
+    {
+        $vars = array();
+        $config = new KConfig();
 
-		/**
-		 * Check if the path is a menu item
-		 */
-		$item = JSite::getMenu()->getItems('route', str_replace('.html', '', $uri->getPath()), true);
+        /**
+         * Check if the path is a menu item
+         */
+        $item = JSite::getMenu()->getItems('route', str_replace('.html', '', $uri->getPath()), true);
 
-		if (isset($item->id)) {
-			JRequest::setVar('Itemid', $item->id);
-		} else {
+        if (isset($item->id)) {
+            JRequest::setVar('Itemid', $item->id);
+        } else {
             /**
              * Path is not a menu item. Resolve path with the Symfony Router.
              */
@@ -284,16 +282,16 @@ class Router
              * Get the component router and parse it there.
              */
             if($config->query->option != 'com_search') {
-                $component_router	= $siteRouter->getComponentRouter($config->query->option);
-                $vars				= $component_router->parse($config->query->toArray());
+                $component_router   = $siteRouter->getComponentRouter($config->query->option);
+                $vars               = $component_router->parse($config->query->toArray());
             }
 
             $uri->setPath('');
             $uri->setQuery(array_merge($uri->getQuery(true), $config->query->toArray()));
-		}
+        }
 
-		return $vars;
-	}
+        return $vars;
+    }
 
     protected function redirect($config, $siteRouter, $uri)
     {
@@ -308,8 +306,8 @@ class Router
         parse_str($uri->getQuery(), $arr);
         $config->query->append($arr);
 
-        $component_router	= $siteRouter->getComponentRouter($config->query->option);
-        $vars				= $component_router->build($config->query->toArray());
+        $component_router   = $siteRouter->getComponentRouter($config->query->option);
+        $vars               = $component_router->build($config->query->toArray());
 
         // Add option and view to $vars
         if (!$vars['option']) {
