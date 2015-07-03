@@ -3,7 +3,7 @@
     "type": "joomlatools-installer",
     "description": "Router Package",
     "keywords": ["joomla", "nooku", "router"],
-    "homepage": "https://github.com/moyo/router",
+    "homepage": "https://github.com/moyo/com_router",
     "authors": [
         {
             "name": "Joep van der Heijden",
