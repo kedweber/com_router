@@ -1,9 +1,9 @@
 {
-    "name": "cta/router",
+    "name": "moyo/router",
     "type": "joomlatools-installer",
     "description": "Router Package",
     "keywords": ["joomla", "nooku", "router"],
-    "homepage": "https://github.com/cta-int/router",
+    "homepage": "https://github.com/moyo/router",
     "authors": [
         {
             "name": "Joep van der Heijden",
